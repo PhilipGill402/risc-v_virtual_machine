@@ -8,6 +8,7 @@ class Memory {
 public:
     uint8_t* mem;
 
+    bool valid_access(uint64_t address, size_t size) const;
     size_t address_to_index(uint64_t address) const;
 
     static constexpr uint64_t MEM_BASE = 0x80000000;

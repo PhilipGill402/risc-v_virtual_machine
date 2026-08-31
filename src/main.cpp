@@ -6,7 +6,7 @@
 int main() {
     VM vm = VM();
 
-    vm.ram.write8(Memory::MEM_BASE, 67);
+    vm.ram.write64(Memory::MEM_BASE, 5000000000);
     
-    printf("%d\n", vm.ram.read8(Memory::MEM_BASE));
+    printf("%llu\n", vm.ram.read64(Memory::MEM_BASE));
 }
