@@ -9,7 +9,7 @@ public:
     CPU cpu;
     Memory ram;
 
-    VM() = default;
+    VM();
 };
 
 #endif

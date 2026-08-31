@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include "registers.h"
+#include "memory.h"
+#include "instructions.h"
 
 class CPU {
     Registers regs;
@@ -10,6 +12,8 @@ class CPU {
 
 public:
     CPU() = default;
+    void reset();
+    uint32_t fetch(Memory mem);
 };
 
 #endif
