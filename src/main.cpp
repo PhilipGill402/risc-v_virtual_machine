@@ -1,13 +1,12 @@
 #include <iostream>
-#include "cpu.h"
+#include "vm.h"
 
+#include <stdio.h>
 
 int main() {
-    CPU riscv = CPU();
+    VM vm = VM();
 
-    riscv.regs.write(0, 10);
-    riscv.regs.write(1, 64);
+    vm.ram.write8(Memory::MEM_BASE, 67);
     
-    std::cout << riscv.regs.read(0) << "\n";
-    std::cout << riscv.regs.read(1) << "\n";
+    printf("%d\n", vm.ram.read8(Memory::MEM_BASE));
 }

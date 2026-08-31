@@ -5,7 +5,6 @@
 #include "registers.h"
 
 class CPU {
-private:
     Registers regs;
     uint64_t pc;
 

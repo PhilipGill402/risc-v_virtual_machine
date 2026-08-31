@@ -5,7 +5,6 @@
 #include <cstddef>
 
 class Registers {
-private:
     uint64_t regs[32];
 
 public:
