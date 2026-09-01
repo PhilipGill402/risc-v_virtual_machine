@@ -1,12 +1,13 @@
 #include <iostream>
 #include "vm.h"
+#include "instruction_types.h"
 
 #include <stdio.h>
 
 int main() {
     VM vm = VM();
 
-    vm.ram.write64(Memory::MEM_BASE, 5000000000);
+    vm.ram.write32(Memory::MEM_BASE, 0x00B50533);
     
-    printf("%llu\n", vm.ram.read64(Memory::MEM_BASE));
+    RType ins = decodeR(0x00B50533);
 }
