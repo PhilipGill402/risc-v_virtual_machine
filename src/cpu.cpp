@@ -16,6 +16,10 @@ uint64_t CPU::read_reg(uint8_t reg_num) const {
     return regs.read(reg_num);
 }
 
+uint64_t CPU::get_pc() const {
+    return cpu.pc;
+}
+
 void CPU::step(const Memory& mem) {
     uint32_t instruction = fetch(mem);
 

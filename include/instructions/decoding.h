@@ -25,19 +25,22 @@ typedef struct {
     uint8_t rs1 : 4;
     uint8_t rs2 : 4;
     uint8_t funct7 : 6;
+    uint8_t opcode : 6;
 } RType;
 
 typedef struct {
     uint8_t rd : 4;
     uint8_t funct3 : 2;
     uint8_t rs1 : 4;
-    uint64_t imm; 
+    uint8_t opcode : 6;
+    uint64_t imm;
 } IType;
 
 typedef struct {
     uint8_t funct3 : 2;
     uint8_t rs1 : 4;
     uint8_t rs2 : 4;
+    uint8_t opcode : 6;
     uint64_t imm;
 } SType;
 
@@ -45,18 +48,23 @@ typedef struct {
     uint8_t funct3 : 2;
     uint8_t rs1 : 4;
     uint8_t rs2 : 4;
+    uint8_t opcode : 6;
     uint64_t imm;
 } BType;
 
 typedef struct {
     uint8_t rd : 4;
+    uint8_t opcode : 6;
     uint64_t imm;
 } UType;
 
 typedef struct {
     uint8_t rd : 4;
+    uint8_t opcode : 6;
     uint64_t imm;
 } JType;
+
+uint64_t sign_extend(uint32_t imm, uint8_t bits);
 
 RType decodeR(uint32_t instruction);
 IType decodeI(uint32_t instruction);

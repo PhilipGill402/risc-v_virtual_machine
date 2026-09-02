@@ -21,6 +21,7 @@ RType decodeR(uint32_t instruction) {
         .rs1 = static_cast<uint8_t>((instruction >> 15) & 0x1F),
         .rs2 = static_cast<uint8_t>((instruction >> 20) & 0x1F),
         .funct7 = static_cast<uint8_t>((instruction >> 25) & 0x7F),
+        .opcode = static_cast<uint8_t>(instruction & 0x7f),
     };
 }
 
@@ -31,6 +32,7 @@ IType decodeI(uint32_t instruction) {
         .rd = static_cast<uint8_t>((instruction >> 7) & 0x1F),
         .funct3 = static_cast<uint8_t>((instruction >> 12) & 0x07),
         .rs1 = static_cast<uint8_t>((instruction >> 15) & 0x1F),
+        .opcode = static_cast<uint8_t>(instruction & 0x7f),
         .imm = sign_extend(imm, 12),
     };
 }
@@ -44,6 +46,7 @@ SType decodeS(uint32_t instruction) {
         .funct3 = static_cast<uint8_t>((instruction >> 12) & 0x07),
         .rs1 = static_cast<uint8_t>((instruction >> 15) & 0x1F),
         .rs2 = static_cast<uint8_t>((instruction >> 20) & 0x1F),
+        .opcode = static_cast<uint8_t>(instruction & 0x7f),
         .imm = sign_extend(imm, 12),
     };
 }
@@ -59,6 +62,7 @@ BType decodeB(uint32_t instruction) {
         .funct3 = static_cast<uint8_t>((instruction >> 12) & 0x7),
         .rs1 = static_cast<uint8_t>((instruction >> 15) & 0x1F),
         .rs2 = static_cast<uint8_t>((instruction >> 20) & 0x1F),
+        .opcode = static_cast<uint8_t>(instruction & 0x7f),
         .imm = sign_extend(imm, 13),
     };
 }
@@ -66,6 +70,7 @@ BType decodeB(uint32_t instruction) {
 UType decodeU(uint32_t instruction) {
     return (UType){
         .rd = static_cast<uint8_t>((instruction >> 7) & 0x1F),
+        .opcode = static_cast<uint8_t>(instruction & 0x7f),
         .imm = sign_extend(instruction & 0xFFFFF000, 32),
     };
 }
@@ -79,6 +84,7 @@ JType decodeJ(uint32_t instruction) {
 
     return (JType){
         .rd = static_cast<uint8_t>((instruction >> 7) & 0x1F),
+        .opcode = static_cast<uint8_t>(instruction & 0x7f),
         .imm =  sign_extend(imm, 21),
     };
 }
