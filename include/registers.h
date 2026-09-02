@@ -5,7 +5,7 @@
 #include <cstddef>
 
 class Registers {
-    uint64_t regs[32];
+    uint64_t regs[32]{};
 
 public:
     Registers() = default;

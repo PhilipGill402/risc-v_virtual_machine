@@ -12,6 +12,9 @@ void Registers::write(uint8_t index, uint64_t value) {
 }
 
 uint64_t Registers::read(uint8_t index) const {
+    if (index == 0)
+        return 0;
+
     if (index >= 32)
         throw std::out_of_range("Register number out of range");
 

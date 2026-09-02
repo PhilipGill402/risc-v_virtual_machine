@@ -1,7 +1,23 @@
-#ifndef INCLUDE_INSTRUCTION_TYPES_H_
-#define INCLUDE_INSTRUCTION_TYPES_H_
+#ifndef INCLUDE_INSTRUCTIONS_DECODING_H_
+#define INCLUDE_INSTRUCTIONS_DECODING_H_
 
 #include <stdint.h>
+
+enum class Opcode : uint8_t {
+    LOAD       = 0x03,
+    MISC_MEM   = 0x0F,
+    OP_IMM     = 0x13,
+    AUIPC      = 0x17,
+    OP_IMM_32  = 0x1B,
+    STORE      = 0x23,
+    OP         = 0x33,
+    LUI        = 0x37,
+    OP_32      = 0x3B,
+    BRANCH     = 0x63,
+    JALR       = 0x67,
+    JAL        = 0x6F,
+    SYSTEM     = 0x73
+};
 
 typedef struct {
     uint8_t rd : 4;
@@ -15,31 +31,31 @@ typedef struct {
     uint8_t rd : 4;
     uint8_t funct3 : 2;
     uint8_t rs1 : 4;
-    uint16_t imm : 11; 
+    uint64_t imm; 
 } IType;
 
 typedef struct {
-    uint16_t imm : 11;
     uint8_t funct3 : 2;
     uint8_t rs1 : 4;
     uint8_t rs2 : 4;
+    uint64_t imm;
 } SType;
 
 typedef struct {
-    uint16_t imm : 12;
     uint8_t funct3 : 2;
     uint8_t rs1 : 4;
     uint8_t rs2 : 4;
+    uint64_t imm;
 } BType;
 
 typedef struct {
     uint8_t rd : 4;
-    uint32_t imm : 19;
+    uint64_t imm;
 } UType;
 
 typedef struct {
     uint8_t rd : 4;
-    uint32_t imm : 20;
+    uint64_t imm;
 } JType;
 
 RType decodeR(uint32_t instruction);

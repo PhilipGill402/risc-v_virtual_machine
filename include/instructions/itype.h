@@ -1,0 +1,10 @@
+#ifndef INCLUDE_INSTRUCTIONS_ITYPE_H_
+#define INCLUDE_INSTRUCTIONS_ITYPE_H_
+
+#include "instructions/decoding.h"
+
+class CPU;
+
+void executeI(CPU& cpu, IType instruction);
+
+#endif
