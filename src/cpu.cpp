@@ -16,11 +16,7 @@ uint64_t CPU::read_reg(uint8_t reg_num) const {
     return regs.read(reg_num);
 }
 
-uint64_t CPU::get_pc() const {
-    return cpu.pc;
-}
-
-void CPU::step(const Memory& mem) {
+void CPU::step(Memory& mem) {
     uint32_t instruction = fetch(mem);
 
     uint8_t raw_opcode = instruction & 0x7F;
@@ -43,7 +39,7 @@ void CPU::step(const Memory& mem) {
         case Opcode::OP_IMM:
         case Opcode::OP_IMM_32: {
             IType decoded = decodeI(instruction);
-            executeI(*this, decoded);
+            executeI(*this, mem, decoded);
             break;
         }
 

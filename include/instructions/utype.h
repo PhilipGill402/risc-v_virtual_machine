@@ -5,6 +5,6 @@
 
 class CPU;
 
-void executeU(CPU& cpu, UType instruction);
+void executeU(CPU& cpu, Memory& mem, UType instruction);
 
 #endif

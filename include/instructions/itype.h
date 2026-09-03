@@ -2,9 +2,10 @@
 #define INCLUDE_INSTRUCTIONS_ITYPE_H_
 
 #include "instructions/decoding.h"
+#include "memory.h"
 
 class CPU;
 
-void executeI(CPU& cpu, IType instruction);
+void executeI(CPU& cpu, Memory& mem, IType instruction);
 
 #endif

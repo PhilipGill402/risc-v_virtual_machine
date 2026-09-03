@@ -2,6 +2,7 @@
 #define INCLUDE_INSTRUCTIONS_DECODING_H_
 
 #include <stdint.h>
+#include "memory.h"
 
 enum class Opcode : uint8_t {
     LOAD       = 0x03,
