@@ -18,34 +18,62 @@ static void sub(CPU& cpu, Memory& mem, RType instruction) {
 }
 
 static void sll(CPU& cpu, Memory& mem, RType instruction) {
+    uint64_t value = cpu.read_reg(instruction.rs1);
+    uint8_t shamt = static_cast<uint8_t>(instruction.rs2) & 0x1F;
+    value <<= shamt;
 
+    cpu.write_reg(instruction.rd, value);
 }
 
 static void slt(CPU& cpu, Memory& mem, RType instruction) {
+    int64_t rs1 = static_cast<int64_t>(cpu.read_reg(instruction.rs1));
+    int64_t rs2 = static_cast<int64_t>(cpu.read_reg(instruction.rs2));
 
+    cpu.write_reg(instruction.rd, rs1 < rs2);
 }
 
 static void sltu(CPU& cpu, Memory& mem, RType instruction) {
+    uint64_t rs1 = cpu.read_reg(instruction.rs1);
+    uint64_t rs2 = cpu.read_reg(instruction.rs2);
 
+    cpu.write_reg(instruction.rd, rs1 < rs2);
 }
 
 static void xor_op(CPU& cpu, Memory& mem, RType instruction) {
+    uint64_t rs1 = cpu.read_reg(instruction.rs1);
+    uint64_t rs2 = cpu.read_reg(instruction.rs2);
 
+    cpu.write_reg(instruction.rd, rs1 ^ rs2);
 }
 
 static void srl(CPU& cpu, Memory& mem, RType instruction) {
+    uint64_t value = cpu.read_reg(instruction.rs1);
+    uint8_t shamt = static_cast<uint8_t>(instruction.rs2) & 0x1F;
+    value >>= shamt;
 
+    cpu.write_reg(instruction.rd, value);
 }
 
 static void or_op(CPU& cpu, Memory& mem, RType instruction) {
+    uint64_t rs1 = cpu.read_reg(instruction.rs1);
+    uint64_t rs2 = cpu.read_reg(instruction.rs2);
 
+    cpu.write_reg(instruction.rd, rs1 | rs2);
 }
 
 static void and_op(CPU& cpu, Memory& mem, RType instruction) {
+    uint64_t rs1 = cpu.read_reg(instruction.rs1);
+    uint64_t rs2 = cpu.read_reg(instruction.rs2);
 
+    cpu.write_reg(instruction.rd, rs1 & rs2);
 }
 
 static void dispatch_op(CPU& cpu, Memory& mem, RType instruction) {
+    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0) {
+        fprintf(stderr, "Illegal instruction\n");
+        return;
+    } 
+
     switch (instruction.funct3) {
         case 0x0: {
             if (instruction.funct7 == 0b0000000)
