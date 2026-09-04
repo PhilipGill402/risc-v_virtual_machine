@@ -17,19 +17,6 @@ static void sub(CPU& cpu, Memory& mem, RType instruction) {
     cpu.write_reg(instruction.rd, op1 - op2);
 }
 
-static void addw(CPU& cpu, Memory& mem, RType instruction) {
-    int32_t rs1 = cpu.read_reg(instruction.rs1);
-    int32_t rs2 = cpu.read_reg(instruction.rs2);
-
-    cpu.write_reg(instruction.rd, sign_extend(rs1 + rs2, 32));
-}
-
-static void subw(CPU& cpu, Memory& mem, RType instruction) {
-    int32_t rs1 = cpu.read_reg(instruction.rs1);
-    int32_t rs2 = cpu.read_reg(instruction.rs2);
-
-    cpu.write_reg(instruction.rd, sign_extend(rs1 - rs2, 32));
-}
 
 static void sll(CPU& cpu, Memory& mem, RType instruction) {
     uint64_t value = cpu.read_reg(instruction.rs1);
@@ -68,6 +55,14 @@ static void srl(CPU& cpu, Memory& mem, RType instruction) {
     cpu.write_reg(instruction.rd, value);
 }
 
+static void sra(CPU& cpu, Memory& mem, RType instruction) {
+    int64_t value = cpu.read_reg(instruction.rs1);
+    uint8_t shamt = static_cast<uint8_t>(instruction.rs2) & 0x1F;
+    value >>= shamt;
+
+    cpu.write_reg(instruction.rd, static_cast<uint64_t>(value));
+}
+
 static void or_op(CPU& cpu, Memory& mem, RType instruction) {
     uint64_t rs1 = cpu.read_reg(instruction.rs1);
     uint64_t rs2 = cpu.read_reg(instruction.rs2);
@@ -81,6 +76,43 @@ static void and_op(CPU& cpu, Memory& mem, RType instruction) {
 
     cpu.write_reg(instruction.rd, rs1 & rs2);
 }
+
+static void addw(CPU& cpu, Memory& mem, RType instruction) {
+    int32_t rs1 = cpu.read_reg(instruction.rs1);
+    int32_t rs2 = cpu.read_reg(instruction.rs2);
+
+    cpu.write_reg(instruction.rd, sign_extend(rs1 + rs2, 32));
+}
+
+static void subw(CPU& cpu, Memory& mem, RType instruction) {
+    int32_t rs1 = cpu.read_reg(instruction.rs1);
+    int32_t rs2 = cpu.read_reg(instruction.rs2);
+
+    cpu.write_reg(instruction.rd, sign_extend(rs1 - rs2, 32));
+}
+
+static void sllw(CPU& cpu, Memory& mem, RType instruction) {
+    uint32_t value = static_cast<uint32_t>(cpu.read_reg(instruction.rs1));
+    uint8_t shamt = static_cast<uint8_t>(instruction.rs2) & 0xF;
+    value <<= shamt;
+
+    cpu.write_reg(instruction.rd, sign_extend(value, 32));
+}
+
+static void srlw(CPU& cpu, Memory& mem, RType instruction) {
+    uint32_t value = static_cast<uint32_t>(cpu.read_reg(instruction.rs1));
+    uint8_t shamt = static_cast<uint8_t>(instruction.rs2) & 0xF;
+    value >>= shamt;
+
+    cpu.write_reg(instruction.rd, sign_extend(value, 32));
+}
+
+static void sraw(CPU& cpu, Memory& mem, RType instruction) {
+    int32_t value = static_cast<int32_t>(cpu.read_reg(instruction.rs1));
+    uint8_t shamt = static_cast<uint8_t>(instruction.rs2) & 0xF;
+    value >>= shamt;
+
+    cpu.write_reg(instruction.rd, sign_extend(static_cast<uint32_t>(value), 32));}
 
 static void dispatch_op(CPU& cpu, Memory& mem, RType instruction) {
     if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0) {
@@ -100,7 +132,13 @@ static void dispatch_op(CPU& cpu, Memory& mem, RType instruction) {
         case 0x2: slt(cpu, mem, instruction); break;
         case 0x3: sltu(cpu, mem, instruction); break;
         case 0x4: xor_op(cpu, mem, instruction); break;
-        case 0x5: srl(cpu, mem, instruction); break;
+        case 0x5: {
+            if (instruction.funct7 == 0b0000000)
+                srl(cpu, mem, instruction);
+            else if (instruction.funct7 == 0b0100000)
+                sra(cpu, mem, instruction);
+            break;
+        }
         case 0x6: or_op(cpu, mem, instruction); break;
         case 0x7: and_op(cpu, mem, instruction); break;
         default: fprintf(stderr, "Illegal instruction\n");
