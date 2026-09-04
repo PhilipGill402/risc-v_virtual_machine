@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include "registers.h"
 #include "memory.h"
-#include "instructions/decoding.h"
-#include "instructions/itype.h"
 
 class CPU {
     Registers regs;

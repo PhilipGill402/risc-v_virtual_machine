@@ -166,6 +166,18 @@ static void jalr(CPU& cpu, Memory& mem, IType instruction) {
     cpu.pc = addr;
 }
 
+static void ecall(CPU& cpu, Memory& mem, IType instruction) {
+    fprintf(stderr, "ECALL not implemented\n");
+}
+
+static void ebreak(CPU& cpu, Memory& mem, IType instruction) {
+    fprintf(stderr, "EBREAK not implemented\n");
+}
+
+static void fence(CPU& cpu, Memory& mem, IType instruction) {
+    fprintf(stderr, "FENCE not implemented\n");
+}
+
 static void dispatch_op_imm(CPU& cpu, Memory& mem, IType instruction) {
     switch (instruction.funct3) {
         case 0x0: addi(cpu, mem, instruction); break;
@@ -202,6 +214,19 @@ static void dispatch_load(CPU& cpu, Memory& mem, IType instruction) {
     }
 }
 
+static void dispatch_system(CPU& cpu, Memory& mem, IType instruction) {
+    if (instruction.rs1 != 0 || instruction.rd != 0 || instruction.funct3 != 0) {
+        fprintf(stderr, "Illegal instruction\n");
+        return;
+    } 
+
+    switch (instruction.imm) {
+        case 0x0: ecall(cpu, mem, instruction); break;
+        case 0x1: ebreak(cpu, mem, instruction); break;
+        default: fprintf(stderr, "Illegal instruction\n");
+    }
+}
+
 void executeI(CPU& cpu, Memory& mem, IType instruction) {
     Opcode opcode = static_cast<Opcode>(instruction.opcode);
     
@@ -213,6 +238,10 @@ void executeI(CPU& cpu, Memory& mem, IType instruction) {
         dispatch_load(cpu, mem, instruction);
     else if (opcode == Opcode::JALR)
         jalr(cpu, mem, instruction);
+    else if (opcode == Opcode::SYSTEM)
+        dispatch_system(cpu, mem, instruction);
+    else if (opcode == Opcode::MISC_MEM)
+        fence(cpu, mem, instruction);
     else
         fprintf(stderr, "Illegal instruction\n");
     
