@@ -101,4 +101,7 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
             fprintf(stderr, "Illegal instruction\n"); 
         }
     }
+
+    if (opcode != JAL && opcode != JALR && opcode != BRANCH)
+        cpu->pc += 4;
 }

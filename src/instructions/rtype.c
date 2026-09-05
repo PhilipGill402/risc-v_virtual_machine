@@ -20,7 +20,7 @@ static void sub(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 
 static void sll(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t value = cpu_read_reg(cpu, instruction.rs1);
-    uint8_t shamt = (uint8_t)instruction.rs2 & 0x1F;
+    uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0x3F;
     value <<= shamt;
 
     cpu_write_reg(cpu, instruction.rd, value);
@@ -49,7 +49,7 @@ static void xor_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 
 static void srl(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t value = cpu_read_reg(cpu, instruction.rs1);
-    uint8_t shamt = (uint8_t)instruction.rs2 & 0x1F;
+    uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0x3F;
     value >>= shamt;
 
     cpu_write_reg(cpu, instruction.rd, value);
@@ -57,7 +57,7 @@ static void srl(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 
 static void sra(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     int64_t value = cpu_read_reg(cpu, instruction.rs1);
-    uint8_t shamt = (uint8_t)instruction.rs2 & 0x1F;
+    uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0x3F;
     value >>= shamt;
 
     cpu_write_reg(cpu, instruction.rd, (uint64_t)value);
@@ -93,7 +93,7 @@ static void subw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 
 static void sllw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint32_t value = (uint32_t)cpu_read_reg(cpu, instruction.rs1);
-    uint8_t shamt = (uint8_t)instruction.rs2 & 0xF;
+    uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0x1F;
     value <<= shamt;
 
     cpu_write_reg(cpu, instruction.rd, sign_extend(value, 32));
@@ -101,7 +101,7 @@ static void sllw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 
 static void srlw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint32_t value = (uint32_t)cpu_read_reg(cpu, instruction.rs1);
-    uint8_t shamt = (uint8_t)instruction.rs2 & 0xF;
+    uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0x1F;
     value >>= shamt;
 
     cpu_write_reg(cpu, instruction.rd, sign_extend(value, 32));
@@ -109,13 +109,13 @@ static void srlw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 
 static void sraw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     int32_t value = (int32_t)cpu_read_reg(cpu, instruction.rs1);
-    uint8_t shamt = (uint8_t)instruction.rs2 & 0xF;
+    uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0xF;
     value >>= shamt;
 
     cpu_write_reg(cpu, instruction.rd, sign_extend((uint32_t)value, 32));}
 
 static void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
-    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0) {
+    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0 && instruction.funct3 != 0x5) {
         fprintf(stderr, "Illegal instruction\n");
         return;
     } 
@@ -146,7 +146,7 @@ static void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
 }
 
 static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
-    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0) {
+    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0 && instruction.funct3 != 0x5) {
         fprintf(stderr, "Illegal instruction\n");
         return;
     } 

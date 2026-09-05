@@ -27,7 +27,6 @@ rtype_t decodeR(uint32_t instruction) {
 
 itype_t decodeI(uint32_t instruction) {
     uint32_t imm = (uint32_t)(instruction >> 20 & 0xFFF);
-
     return (itype_t){
         .rd = (uint8_t)(instruction >> 7 & 0x1F),
         .funct3 = (uint8_t)(instruction >> 12 & 0x07),
@@ -81,11 +80,11 @@ jtype_t decodeJ(uint32_t instruction) {
             ((uint32_t)((instruction >> 20) & 0x1) << 11) |
             ((uint32_t)((instruction >> 12) & 0xFF) << 12) |
             ((uint32_t)((instruction >> 31) & 0x1) << 20));
-
+    
     return (jtype_t){
         .rd = (uint8_t)((instruction >> 7) & 0x1F),
         .opcode = (uint8_t)(instruction & 0x7f),
-        .imm =  sign_extend(imm, 21),
+        .imm = sign_extend(imm, 21),
     };
 }
 

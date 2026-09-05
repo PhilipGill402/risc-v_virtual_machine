@@ -22,46 +22,46 @@ typedef enum Opcode {
 
 typedef struct {
     uint8_t rd : 4;
-    uint8_t funct3 : 2;
-    uint8_t rs1 : 4;
-    uint8_t rs2 : 4;
-    uint8_t funct7 : 6;
-    uint8_t opcode : 6;
+    uint8_t funct3 : 3;
+    uint8_t rs1 : 5;
+    uint8_t rs2 : 5;
+    uint8_t funct7 : 7;
+    uint8_t opcode : 7;
 } rtype_t;
 
 typedef struct {
-    uint8_t rd : 4;
-    uint8_t funct3 : 2;
-    uint8_t rs1 : 4;
-    uint8_t opcode : 6;
+    uint8_t rd : 5;
+    uint8_t funct3 : 3;
+    uint8_t rs1 : 5;
+    uint8_t opcode : 7;
     uint64_t imm;
 } itype_t;
 
 typedef struct {
-    uint8_t funct3 : 2;
-    uint8_t rs1 : 4;
-    uint8_t rs2 : 4;
-    uint8_t opcode : 6;
+    uint8_t funct3 : 3;
+    uint8_t rs1 : 5;
+    uint8_t rs2 : 5;
+    uint8_t opcode : 7;
     uint64_t imm;
 } stype_t;
 
 typedef struct {
-    uint8_t funct3 : 2;
-    uint8_t rs1 : 4;
-    uint8_t rs2 : 4;
-    uint8_t opcode : 6;
+    uint8_t funct3 : 3;
+    uint8_t rs1 : 5;
+    uint8_t rs2 : 5;
+    uint8_t opcode : 7;
     uint64_t imm;
 } btype_t;
 
 typedef struct {
-    uint8_t rd : 4;
-    uint8_t opcode : 6;
+    uint8_t rd : 5;
+    uint8_t opcode : 7;
     uint64_t imm;
 } utype_t;
 
 typedef struct {
-    uint8_t rd : 4;
-    uint8_t opcode : 6;
+    uint8_t rd : 5;
+    uint8_t opcode : 7;
     uint64_t imm;
 } jtype_t;
 

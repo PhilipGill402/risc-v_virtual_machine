@@ -6,60 +6,60 @@ static void beq(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 != rs2)
-        return;
-
-    cpu->pc += (int64_t)instruction.imm;
+    if (rs1 == rs2)
+        cpu->pc += (int64_t)instruction.imm;
+    else
+        cpu->pc += 4;
 }
 
 static void bne(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 == rs2)
-        return;
-
-    cpu->pc += (int64_t)instruction.imm;
+    if (rs1 != rs2)
+        cpu->pc += (int64_t)instruction.imm;
+    else
+        cpu->pc += 4;
 }
 
 static void blt(cpu_t* cpu, memory_t* mem, btype_t instruction) {
-    uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
-    uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
+    int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
+    int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 >= rs2)
-        return;
-
-    cpu->pc += (int64_t)instruction.imm;
+    if (rs1 < rs2)
+        cpu->pc += (int64_t)instruction.imm;
+    else
+        cpu->pc += 4;
 }
 
 static void bge(cpu_t* cpu, memory_t* mem, btype_t instruction) {
-    uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
-    uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
+    int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
+    int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 < rs2)
-        return;
-
-    cpu->pc += (int64_t)instruction.imm;
+    if (rs1 >= rs2)
+        cpu->pc += (int64_t)instruction.imm;
+    else
+        cpu->pc += 4;
 }
 
 static void bltu(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 >= rs2)
-        return;
-
-    cpu->pc += instruction.imm;
+    if (rs1 < rs2)
+        cpu->pc += instruction.imm;
+    else
+        cpu->pc += 4;
 }
 
 static void bgeu(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 < rs2)
-        return;
-
-    cpu->pc += instruction.imm;
+    if (rs1 >= rs2)
+        cpu->pc += instruction.imm;
+    else
+        cpu->pc += 4;
 }
 
 void executeB(cpu_t* cpu, memory_t* mem, btype_t instruction) {

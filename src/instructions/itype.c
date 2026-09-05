@@ -49,7 +49,6 @@ static void ori(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 
 static void xori(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
-    printf("%llx\n", rs1);
 
     cpu_write_reg(cpu, instruction.rd, rs1 ^ instruction.imm);
 }
@@ -139,7 +138,7 @@ static void lw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 static void ld(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
     uint64_t value = mem_read64(mem, addr);
-    cpu_write_reg(cpu, instruction.rd, sign_extend(value, 64));   
+    cpu_write_reg(cpu, instruction.rd, value);   
 }
 
 static void lbu(cpu_t* cpu, memory_t* mem, itype_t instruction) {
