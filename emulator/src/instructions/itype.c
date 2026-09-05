@@ -1,6 +1,7 @@
 #include "instructions/itype.h"
 #include "cpu.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static void addi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t reg_value = cpu_read_reg(cpu, instruction.rs1);
@@ -172,6 +173,7 @@ static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 
 static void ebreak(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     fprintf(stderr, "EBREAK not implemented\n");
+    exit(0);
 }
 
 static void fence(cpu_t* cpu, memory_t* mem, itype_t instruction) {

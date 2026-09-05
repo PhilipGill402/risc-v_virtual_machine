@@ -26,7 +26,7 @@ static void sw(cpu_t* cpu, memory_t* mem, stype_t instruction) {
 static void sd(cpu_t* cpu, memory_t* mem, stype_t instruction) {
     uint64_t value = (uint64_t)cpu_read_reg(cpu, instruction.rs2);
     uint64_t addr = cpu_read_reg(cpu, instruction.rs1) + (int64_t)instruction.imm;
-
+    
     mem_write64(mem, addr, value);
 }
 

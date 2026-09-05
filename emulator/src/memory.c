@@ -44,7 +44,7 @@ void mem_write8(memory_t* mem, uint64_t address, uint8_t value) {
 
 void mem_write16(memory_t* mem, uint64_t address, uint16_t value) {
     if (!valid_access(address, 2)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return;
     }
 
@@ -56,7 +56,7 @@ void mem_write16(memory_t* mem, uint64_t address, uint16_t value) {
 
 void mem_write32(memory_t* mem, uint64_t address, uint32_t value) {
     if (!valid_access(address, 4)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return;
     }
 
@@ -70,7 +70,7 @@ void mem_write32(memory_t* mem, uint64_t address, uint32_t value) {
 
 void mem_write64(memory_t* mem, uint64_t address, uint64_t value) {
     if (!valid_access(address, 8)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return;
     }
     
@@ -88,7 +88,7 @@ void mem_write64(memory_t* mem, uint64_t address, uint64_t value) {
 
 uint8_t mem_read8(memory_t* mem, uint64_t address) {
     if (!valid_access(address, 1)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return 0;
     }
     
@@ -99,7 +99,7 @@ uint8_t mem_read8(memory_t* mem, uint64_t address) {
 
 uint16_t mem_read16(memory_t* mem, uint64_t address) {
     if (!valid_access(address, 2)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return 0;
     }
 
@@ -110,7 +110,7 @@ uint16_t mem_read16(memory_t* mem, uint64_t address) {
 
 uint32_t mem_read32(memory_t* mem, uint64_t address) {
     if (!valid_access(address, 4)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return 0;
     }
 
@@ -121,7 +121,7 @@ uint32_t mem_read32(memory_t* mem, uint64_t address) {
 
 uint64_t mem_read64(memory_t* mem, uint64_t address) {
     if (!valid_access(address, 8)) {
-        fprintf(stderr, "Invalid address: %llu\n", address);
+        fprintf(stderr, "Invalid address: %llx\n", address);
         return 0;
     }
 

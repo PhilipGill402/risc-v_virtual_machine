@@ -12,10 +12,10 @@ _start:
     add x7, x5, x6
 
     # x8 = MEM_BASE + 0x100
-    lui x8, 0x80000
-    addi x8, x8, 0x100
-
-    # store x7 at memory address
+    lui  x8, 0x40000
+    slli x8, x8, 1
+    addi x8, x8, 0x100    # store x7 at memory address
+    
     sd x7, 0(x8)
 
     # load it back into x9

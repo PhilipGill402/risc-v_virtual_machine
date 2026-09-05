@@ -1,4 +1,5 @@
 .DS_Store
+riscv_vm
+test_vm
 build/
-vm
 riscv-unprivileged.pdf

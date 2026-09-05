@@ -1,95 +1,38 @@
-# Compiler and flags
-
-CC = clang
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude
-
-# Directories
-
-SRC_DIR = src
-OBJ_DIR = build
+EMULATOR_DIR = emulator
+VM_DIR = vm
+DEBUG_DIR = debug
 TEST_DIR = tests
 
-# Targets
+VM = riscv_vm
 
-TARGET = vm
-TEST_TARGET = test_vm
+all: vm
 
-# Find all .c files recursively
+emulator:
+	$(MAKE) -C $(EMULATOR_DIR)
 
-SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
+vm: emulator
+	$(MAKE) -C $(VM_DIR)
 
-# Convert:
-# src/main.c            -> build/src/main.o
+debug: emulator
+	$(MAKE) -C $(DEBUG_DIR)
 
-SRC_OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/src/%.o,$(SRC_FILES))
-OBJ_FILES := $(SRC_OBJ_FILES)
+test: emulator
+	$(MAKE) -C $(TEST_DIR) test
 
-# Test files
-
-TEST_SRC = $(TEST_DIR)/test.c
-TEST_OBJ = $(OBJ_DIR)/tests/test.o
-
-# Do not link the normal main.c into the test executable,
-# since tests/test.c should provide the test main().
-TEST_SRC_OBJ_FILES := $(filter-out $(OBJ_DIR)/src/main.o,$(SRC_OBJ_FILES))
-TEST_OBJ_FILES := $(TEST_SRC_OBJ_FILES) $(TEST_OBJ)
-
-# ASM toolchain
-RISCV_AS      = riscv64-elf-as
-RISCV_LD      = riscv64-elf-ld
-RISCV_OBJCOPY = riscv64-elf-objcopy
-RISCV_OBJDUMP = riscv64-elf-objdump
-
-RISCV_SRC = $(TEST_DIR)/program.asm
-RISCV_OBJ = $(OBJ_DIR)/$(TEST_DIR)/program.o
-RISCV_ELF = $(OBJ_DIR)/$(TEST_DIR)/program.elf
-RISCV_BIN = $(TEST_DIR)/program.bin
-
-
-
-# Default target
-
-all: $(TARGET)
-
-# Link emulator
-
-$(TARGET): $(OBJ_FILES)
-	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES)
-
-# Compile src files
-
-$(OBJ_DIR)/src/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Compile tests/test.c.
-
-$(TEST_OBJ): $(TEST_SRC)
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -I$(TEST_DIR) -c $(TEST_SRC) -o $@
-
-# Build and run tests
-
-test: $(TEST_TARGET)
-	./$(TEST_TARGET)
-
-$(TEST_TARGET): $(TEST_OBJ_FILES)
-	$(CC) $(CFLAGS) -I$(TEST_DIR) -o $@ $(TEST_OBJ_FILES)
-
-# assemble test file
 asm:
-	$(RISCV_AS) -march=rv64i -mabi=lp64 $(RISCV_SRC) -o $(RISCV_OBJ)
-	$(RISCV_LD) -Ttext=0x80000000 -e _start $(RISCV_OBJ) -o $(RISCV_ELF)
-	$(RISCV_OBJCOPY) -O binary $(RISCV_ELF) $(RISCV_BIN)
+	$(MAKE) -C $(TEST_DIR) asm
 
-# Clean
+disasm:
+	$(MAKE) -C $(TEST_DIR) disasm
+
+run: vm
+	$(MAKE) -C $(VM_DIR)
+	./$(VM)
 
 clean:
-	rm -rf $(OBJ_DIR) $(TARGET) $(TEST_TARGET)
+	$(MAKE) -C $(EMULATOR_DIR) clean
+	$(MAKE) -C $(VM_DIR) clean
+	$(MAKE) -C $(DEBUG_DIR) clean
+	$(MAKE) -C $(TEST_DIR) clean
 
-# Run emulator
-
-run: $(TARGET)
-	./$(TARGET)
-
-.PHONY: all clean run test
+.PHONY: all emulator vm debug test asm disasm run clean
