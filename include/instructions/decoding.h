@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "memory.h"
 
-enum class Opcode : uint8_t {
+typedef enum Opcode {
     LOAD       = 0x03,
     MISC_MEM   = 0x0F,
     OP_IMM     = 0x13,
@@ -18,7 +18,7 @@ enum class Opcode : uint8_t {
     JALR       = 0x67,
     JAL        = 0x6F,
     SYSTEM     = 0x73
-};
+} opcode_t;
 
 typedef struct {
     uint8_t rd : 4;
@@ -27,7 +27,7 @@ typedef struct {
     uint8_t rs2 : 4;
     uint8_t funct7 : 6;
     uint8_t opcode : 6;
-} RType;
+} rtype_t;
 
 typedef struct {
     uint8_t rd : 4;
@@ -35,15 +35,7 @@ typedef struct {
     uint8_t rs1 : 4;
     uint8_t opcode : 6;
     uint64_t imm;
-} IType;
-
-typedef struct {
-    uint8_t funct3 : 2;
-    uint8_t rs1 : 4;
-    uint8_t rs2 : 4;
-    uint8_t opcode : 6;
-    uint64_t imm;
-} SType;
+} itype_t;
 
 typedef struct {
     uint8_t funct3 : 2;
@@ -51,27 +43,35 @@ typedef struct {
     uint8_t rs2 : 4;
     uint8_t opcode : 6;
     uint64_t imm;
-} BType;
+} stype_t;
+
+typedef struct {
+    uint8_t funct3 : 2;
+    uint8_t rs1 : 4;
+    uint8_t rs2 : 4;
+    uint8_t opcode : 6;
+    uint64_t imm;
+} btype_t;
 
 typedef struct {
     uint8_t rd : 4;
     uint8_t opcode : 6;
     uint64_t imm;
-} UType;
+} utype_t;
 
 typedef struct {
     uint8_t rd : 4;
     uint8_t opcode : 6;
     uint64_t imm;
-} JType;
+} jtype_t;
 
 uint64_t sign_extend(uint32_t imm, uint8_t bits);
 
-RType decodeR(uint32_t instruction);
-IType decodeI(uint32_t instruction);
-SType decodeS(uint32_t instruction);
-BType decodeB(uint32_t instruction);
-UType decodeU(uint32_t instruction);
-JType decodeJ(uint32_t instruction);
+rtype_t decodeR(uint32_t instruction);
+itype_t decodeI(uint32_t instruction);
+stype_t decodeS(uint32_t instruction);
+btype_t decodeB(uint32_t instruction);
+utype_t decodeU(uint32_t instruction);
+jtype_t decodeJ(uint32_t instruction);
 
 #endif

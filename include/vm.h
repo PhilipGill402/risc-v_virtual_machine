@@ -4,12 +4,11 @@
 #include "cpu.h"
 #include "memory.h"
 
-class VM {
-public:
-    CPU cpu;
-    Memory ram;
+typedef struct VM {
+    cpu_t cpu;
+    memory_t ram;
+} vm_t;
 
-    VM();
-};
+vm_t vm_init();
 
 #endif

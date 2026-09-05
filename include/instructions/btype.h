@@ -4,8 +4,8 @@
 #include "instructions/decoding.h"
 #include "memory.h"
 
-class CPU;
+typedef struct cpu_t cpu_t;
 
-void executeB(CPU& cpu, Memory& mem, BType instruction);
+void executeB(cpu_t* cpu, memory_t* mem, btype_t instruction);
 
 #endif

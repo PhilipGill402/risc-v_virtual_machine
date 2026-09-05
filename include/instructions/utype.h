@@ -3,8 +3,8 @@
 
 #include "instructions/decoding.h"
 
-class CPU;
+typedef struct cpu_t cpu_t;
 
-void executeU(CPU& cpu, Memory& mem, UType instruction);
+void executeU(cpu_t* cpu, memory_t* mem, utype_t instruction);
 
 #endif

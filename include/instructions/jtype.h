@@ -4,9 +4,9 @@
 #include "instructions/decoding.h"
 #include "memory.h"
 
-class CPU;
+typedef struct cpu_t cpu_t;
 
-void executeJ(CPU& cpu, Memory& mem, JType instruction);
+void executeJ(cpu_t* cpu, memory_t* mem, jtype_t instruction);
 
 
 
