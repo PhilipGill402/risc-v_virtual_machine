@@ -34,6 +34,19 @@ TEST_OBJ = $(OBJ_DIR)/tests/test.o
 TEST_SRC_OBJ_FILES := $(filter-out $(OBJ_DIR)/src/main.o,$(SRC_OBJ_FILES))
 TEST_OBJ_FILES := $(TEST_SRC_OBJ_FILES) $(TEST_OBJ)
 
+# ASM toolchain
+RISCV_AS      = riscv64-elf-as
+RISCV_LD      = riscv64-elf-ld
+RISCV_OBJCOPY = riscv64-elf-objcopy
+RISCV_OBJDUMP = riscv64-elf-objdump
+
+RISCV_SRC = $(TEST_DIR)/program.asm
+RISCV_OBJ = $(OBJ_DIR)/$(TEST_DIR)/program.o
+RISCV_ELF = $(OBJ_DIR)/$(TEST_DIR)/program.elf
+RISCV_BIN = $(TEST_DIR)/program.bin
+
+
+
 # Default target
 
 all: $(TARGET)
@@ -62,6 +75,12 @@ test: $(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_OBJ_FILES)
 	$(CC) $(CFLAGS) -I$(TEST_DIR) -o $@ $(TEST_OBJ_FILES)
+
+# assemble test file
+asm:
+	$(RISCV_AS) -march=rv64i -mabi=lp64 $(RISCV_SRC) -o $(RISCV_OBJ)
+	$(RISCV_LD) -Ttext=0x80000000 -e _start $(RISCV_OBJ) -o $(RISCV_ELF)
+	$(RISCV_OBJCOPY) -O binary $(RISCV_ELF) $(RISCV_BIN)
 
 # Clean
 
