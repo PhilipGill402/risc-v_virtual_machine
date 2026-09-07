@@ -24,7 +24,7 @@ static void cmd_script(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv);
 static void cmd_watch(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv);
 static void cmd_stack(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv);
 
-command_t commands[] = {
+static const command_t commands[] = {
     { "run", cmd_run },
     { "step", cmd_step },
     { "state", cmd_state },
@@ -40,11 +40,12 @@ command_t commands[] = {
     { "script", cmd_script },
 };
 
-static void print_binary(uint8_t val) {
-    for (int i = 7; i >= 0; --i)
-        printf("%d", (val >> i) & 1);
-    printf("\n");
-}
+static const char* reg_names[32] = {
+    "zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2",
+    "s0", "s1", "a0", "a1", "a2", "a3", "a4", "a5",
+    "a6", "a7", "s2", "s3", "s4", "s5", "s6", "s7",
+    "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
+};
 
 static uint8_t dispatch_command(cpu_t* cpu, memory_t* mem, char* buffer) {
         // get argc and argv
@@ -130,8 +131,9 @@ static void cmd_disassemble(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv)
 
     for (uint32_t i = 0; i < lines; ++i) {
         char* line = disassemble_line(mem, addr);
-        printf("%s\n", line); 
+        printf("[0x%016llx]: %s\n", addr, line); 
         free(line);
+        addr += 4;
     }
 }
 
@@ -141,7 +143,7 @@ static void cmd_save(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
 
     FILE* save_file = fopen("save.dump", "wb");
 
-    fwrite(mem, sizeof(uint8_t), MEM_SIZE, save_file);
+    fwrite(mem->mem, sizeof(uint8_t), MEM_SIZE, save_file);
 
     fclose(save_file);
 }
@@ -152,7 +154,7 @@ static void cmd_reload(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
 
     FILE* save_file = fopen("save.dump", "rb");
 
-    fread(mem, sizeof(uint8_t), MEM_SIZE, save_file);
+    fread(mem->mem, sizeof(uint8_t), MEM_SIZE, save_file);
     cpu_reset(cpu);
 
     fclose(save_file);
@@ -224,7 +226,7 @@ static void cmd_run(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
             printf("Breakpoint reached\n");
             uint64_t addr = cpu->pc;
             char* line = disassemble_line(mem, addr);
-            printf("%s\n", line);
+            printf("[0x%016llx]: %s\n", addr, line);
             free(line);
             return;
         } 
@@ -236,7 +238,7 @@ static void cmd_run(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
             watch_point_reset(addr);
             uint16_t pc = cpu->previous_instruction;
             char* line = disassemble_line(mem, pc);
-            printf("%s\n", line);
+            printf("[0x%016llx]: %s\n", line);
             free(line);
 
             return;
@@ -273,36 +275,45 @@ static void cmd_load(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
         perror("fopen");
         return;
     } 
-
+    
     uint32_t bytes_read;
     uint8_t buffer[1024];
-    uint64_t start_addr = addr;
+    uint64_t offset = addr - MEM_BASE;
     
     do {
         bytes_read = fread(buffer, sizeof(uint8_t), 1024, file);
-        memcpy(&mem->mem[addr], buffer, bytes_read);
-        addr += bytes_read;
+        memcpy(mem->mem + offset, buffer, bytes_read);
+        offset += bytes_read;
     } while (bytes_read == 1024);
 
     fclose(file);
 
-    printf("Loaded %s at 0x%016llx\n", argv[1], start_addr);
+    printf("Loaded %s at 0x%016llx\n", argv[1], addr);
 }
 
 static void cmd_state(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
     (void)argc;
     (void)argv;
 
-    printf("PC: 0x%016llx\t", cpu->pc);
-
-    for (uint8_t i = 0; i < 32; i++) {
-        printf("x%u: %llu\n", i, cpu_read_reg(cpu, i));
-    } 
+    printf("PC: 0x%016llx\n", cpu->pc);
+    printf("Instruction: 0x%08x\t", cpu_fetch(cpu, mem));
 
     uint64_t addr = cpu->pc;
     char* line = disassemble_line(mem, addr);
-    printf("%s\n", line);
+    printf("[0x%016llx]: %s\n", addr, line);
     free(line);
+
+    for (uint8_t i = 0; i < 8; i++) {
+        printf("x%-2u %-4s: 0x%016llx\t", i, reg_names[i], cpu_read_reg(cpu, i));
+        printf("x%-2u %-4s: 0x%016llx\n", i + 8, reg_names[i + 8], cpu_read_reg(cpu, i + 8));
+    }
+
+    printf("\n");
+
+    for (uint8_t i = 16; i < 24; i++) {
+        printf("x%-2u %-4s: 0x%016llx\t", i, reg_names[i], cpu_read_reg(cpu, i));
+        printf("x%-2u %-4s: 0x%016llx\n", i + 8, reg_names[i + 8], cpu_read_reg(cpu, i + 8));
+    } 
 }
 
 static void cmd_mem(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
@@ -319,7 +330,7 @@ static void cmd_mem(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
         return;
     }
 
-    printf("0x016%x\n", mem_read64(mem, addr));
+    printf("0x%016llx\n", mem_read64(mem, addr));
 }
 
 static void cmd_reset(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
@@ -345,7 +356,7 @@ static void cmd_step(cpu_t* cpu, memory_t* mem, int8_t argc, char** argv) {
     for (uint32_t step = 0; step < steps; ++step) {
         uint64_t addr = cpu->pc;
         char* line = disassemble_line(mem, addr);
-        printf("%s\n", line);
+        printf("[0x%016llx]: %s\n", addr, line);
         free(line);
         cpu_step(cpu, mem);
     }
