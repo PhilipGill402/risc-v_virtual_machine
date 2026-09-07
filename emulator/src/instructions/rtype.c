@@ -112,13 +112,15 @@ static void sraw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint8_t shamt = (uint8_t)cpu_read_reg(cpu, instruction.rs2) & 0xF;
     value >>= shamt;
 
-    cpu_write_reg(cpu, instruction.rd, sign_extend((uint32_t)value, 32));}
+    cpu_write_reg(cpu, instruction.rd, sign_extend((uint32_t)value, 32));
+}
 
 static void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
-    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0 && instruction.funct3 != 0x5) {
-        fprintf(stderr, "Illegal instruction\n");
+    // M Extension 
+    if (instruction.funct7 == 0x01) {
+        dispatch_m_op(cpu, mem, instruction);
         return;
-    } 
+    }
 
     switch (instruction.funct3) {
         case 0x0: {
@@ -126,30 +128,33 @@ static void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
                 add(cpu, mem, instruction);
             else if (instruction.funct7 == 0b0100000)
                 sub(cpu, mem, instruction);
-            break;
+            return;
         }
-        case 0x1: sll(cpu, mem, instruction); break;
-        case 0x2: slt(cpu, mem, instruction); break;
-        case 0x3: sltu(cpu, mem, instruction); break;
-        case 0x4: xor_op(cpu, mem, instruction); break;
+        case 0x1: sll(cpu, mem, instruction); return;
+        case 0x2: slt(cpu, mem, instruction); return;
+        case 0x3: sltu(cpu, mem, instruction); return;
+        case 0x4: xor_op(cpu, mem, instruction); return;
         case 0x5: {
             if (instruction.funct7 == 0b0000000)
                 srl(cpu, mem, instruction);
             else if (instruction.funct7 == 0b0100000)
                 sra(cpu, mem, instruction);
-            break;
+            return;
         }
-        case 0x6: or_op(cpu, mem, instruction); break;
-        case 0x7: and_op(cpu, mem, instruction); break;
-        default: fprintf(stderr, "Illegal instruction\n");
+        case 0x6: or_op(cpu, mem, instruction); return;
+        case 0x7: and_op(cpu, mem, instruction); return;
+        default: fprintf(stderr, "Illegal instruction\n"); return;
     }
+
+    fprintf(stderr, "Illegal instruction\n");
 }
 
 static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
-    if (instruction.funct7 != 0b0000000 && instruction.funct3 != 0x0 && instruction.funct3 != 0x5) {
-        fprintf(stderr, "Illegal instruction\n");
+    // M Extension 
+    if (instruction.funct7 == 0x01) {
+        dispatch_m_op_32(cpu, mem, instruction);
         return;
-    } 
+    }
 
     switch (instruction.funct3) {
         case 0x0: {
@@ -157,18 +162,20 @@ static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
                 addw(cpu, mem, instruction);
             else if (instruction.funct7 == 0b0100000)
                 subw(cpu, mem, instruction);
-            break;
+            return;
         }
-        case 0x1: sllw(cpu, mem, instruction); break;
+        case 0x1: sllw(cpu, mem, instruction); return;
         case 0x5: {
             if (instruction.funct7 == 0b0000000)
                 srlw(cpu, mem, instruction);
             else if (instruction.funct7 == 0b0100000)
                 sraw(cpu, mem, instruction);
-            break;
+            return;
         }; 
-        default: fprintf(stderr, "Illegal instruction\n");
+        default: fprintf(stderr, "Illegal instruction\n"); return;
     }
+
+    fprintf(stderr, "Illegal instruction\n");
 }
 
 void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {

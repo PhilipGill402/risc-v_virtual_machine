@@ -2,6 +2,7 @@
 #define INCLUDE_INSTRUCTIONS_RTYPE_H_
 
 #include "instructions/decoding.h"
+#include "instructions/m_extension.h"
 #include "memory.h"
 
 typedef struct cpu_t cpu_t;
