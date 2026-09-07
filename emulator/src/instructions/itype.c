@@ -6,12 +6,12 @@
 static void addi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t reg_value = cpu_read_reg(cpu, instruction.rs1);
 
-    cpu_write_reg(cpu, instruction.rd, reg_value + instruction.imm);
+    cpu_write_reg(cpu, instruction.rd, reg_value + (int64_t)instruction.imm);
 }
 
 static void addiw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint32_t rs1 = (uint32_t)(cpu_read_reg(cpu, instruction.rs1));
-    uint32_t result = rs1 + (uint32_t)(instruction.imm);
+    uint32_t result = rs1 + (int32_t)(instruction.imm);
 
     cpu_write_reg(cpu, instruction.rd, sign_extend(result, 32));
 }

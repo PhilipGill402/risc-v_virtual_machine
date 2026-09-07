@@ -7,10 +7,10 @@ CFLAGS = -Wall -Wextra -std=c11 \
 SRC_DIR = src
 OBJ_DIR = ../build
 
-TARGET = riscv_debug
+TARGET = ../riscv_debug
 
 EMULATOR_DIR = ../emulator
-EMULATOR_LIB = $(EMULATOR_DIR)/build/libriscv.a
+EMULATOR_LIB = ../build/libriscv.a
 
 SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
