@@ -2,12 +2,16 @@ EMULATOR_DIR = emulator
 VM_DIR = vm
 DEBUG_DIR = debug
 TEST_DIR = tests
+UTILS_DIR = utils
 
 VM = riscv_vm
 
 all: vm
 
-emulator:
+utils:
+	$(MAKE) -C $(UTILS_DIR)
+
+emulator: utils
 	$(MAKE) -C $(EMULATOR_DIR)
 
 vm: emulator

@@ -1,5 +1,6 @@
 #include "instructions/itype.h"
 #include "cpu.h"
+#include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -105,7 +106,7 @@ static void sri(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     else if ((instruction.imm >> 6) == 0b000000)
         srli(cpu, mem, instruction);
     else
-        fprintf(stderr, "Illegal instruction\n");
+        log_error("Illegal instruction\n");
 }
 
 static void sriw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
@@ -115,7 +116,7 @@ static void sriw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     else if ((instruction.imm >> 6) == 0b000000)
         srliw(cpu, mem, instruction);
     else
-        fprintf(stderr, "Illegal instruction\n");
+        log_error("Illegal instruction\n");
 }
 
 static void lb(cpu_t* cpu, memory_t* mem, itype_t instruction) {
@@ -168,16 +169,16 @@ static void jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    fprintf(stderr, "ECALL not implemented\n");
+    log_error("ECALL not implemented\n");
 }
 
 static void ebreak(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    fprintf(stderr, "EBREAK not implemented\n");
+    log_error("EBREAK not implemented\n"); 
     exit(0);
 }
 
 static void fence(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    fprintf(stderr, "FENCE not implemented\n");
+    log_error("FENCE not implemented\n");
 }
 
 static void dispatch_op_imm(cpu_t* cpu, memory_t* mem, itype_t instruction) {
@@ -190,7 +191,7 @@ static void dispatch_op_imm(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x5: sri(cpu, mem, instruction); break;
         case 0x6: ori(cpu, mem, instruction); break;
         case 0x7: andi(cpu, mem, instruction); break;
-        default: fprintf(stderr, "Illegal instruction\n");
+        default: log_error("Illegal instruction\n");
     }
 }
 
@@ -199,7 +200,7 @@ static void dispatch_op_imm_32(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x0: addiw(cpu, mem, instruction); break;
         case 0x1: slliw(cpu, mem, instruction); break;
         case 0x5: sriw(cpu, mem, instruction); break;
-        default: fprintf(stderr, "Illegal instruction\n");
+        default: log_error("Illegal instruction\n");
     }
 }
 
@@ -212,20 +213,20 @@ static void dispatch_load(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x4: lbu(cpu, mem, instruction); break;
         case 0x5: lhu(cpu, mem, instruction); break;
         case 0x6: lwu(cpu, mem, instruction); break;
-        default: fprintf(stderr, "Illegal instruction\n");
+        default: log_error("Illegal instruction\n");
     }
 }
 
 static void dispatch_system(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     if (instruction.rs1 != 0 || instruction.rd != 0 || instruction.funct3 != 0) {
-        fprintf(stderr, "Illegal instruction\n");
+        log_error("Illegal instruction\n");
         return;
     } 
 
     switch (instruction.imm) {
         case 0x0: ecall(cpu, mem, instruction); break;
         case 0x1: ebreak(cpu, mem, instruction); break;
-        default: fprintf(stderr, "Illegal instruction\n");
+        default: log_error("Illegal instruction\n");
     }
 }
 
@@ -245,6 +246,6 @@ void executeI(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     else if (opcode == MISC_MEM)
         fence(cpu, mem, instruction);
     else
-        fprintf(stderr, "Illegal instruction\n");
+        log_error("Illegal instruction\n");
     
 }

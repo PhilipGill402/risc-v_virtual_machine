@@ -143,10 +143,10 @@ static void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
         }
         case 0x6: or_op(cpu, mem, instruction); return;
         case 0x7: and_op(cpu, mem, instruction); return;
-        default: fprintf(stderr, "Illegal instruction\n"); return;
+        default: log_error("Illegal instruction\n"); return;
     }
 
-    fprintf(stderr, "Illegal instruction\n");
+    log_error("Illegal instruction\n");
 }
 
 static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
@@ -172,10 +172,10 @@ static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
                 sraw(cpu, mem, instruction);
             return;
         }; 
-        default: fprintf(stderr, "Illegal instruction\n"); return;
+        default: log_error("Illegal instruction\n"); return;
     }
 
-    fprintf(stderr, "Illegal instruction\n");
+    log_error("Illegal instruction\n");
 }
 
 void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
@@ -186,7 +186,7 @@ void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     else if (opcode == OP_32)
         dispatch_op_32(cpu, mem, instruction);
     else
-        fprintf(stderr, "Illegal instruction\n");
+        log_error("Illegal instruction\n");
 }
 
 
