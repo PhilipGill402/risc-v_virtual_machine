@@ -6,6 +6,8 @@
 #include "instructions/stype.h"
 #include "instructions/utype.h"
 #include "instructions/btype.h"
+#include "csrs/csr.h"
+#include "log.h"
 #include <stdio.h>
 
 cpu_t cpu_init() {
@@ -16,6 +18,7 @@ cpu_t cpu_init() {
 
 void cpu_reset(cpu_t* cpu) {
     cpu->pc = MEM_BASE;
+    cpu->priviledge = M_MODE;
 }
 
 uint32_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
@@ -27,7 +30,7 @@ void cpu_write_reg(cpu_t* cpu, uint8_t reg_num, uint64_t value) {
         return;
     
     if (reg_num >= 32) {
-        fprintf(stderr, "Register number out of range: %u\n", reg_num);
+        log_error("Register number out of range: %u\n", reg_num);
         return;
     }
 
@@ -39,7 +42,7 @@ uint64_t cpu_read_reg(cpu_t* cpu, uint8_t reg_num) {
         return 0;
 
     if (reg_num >= 32) {
-        fprintf(stderr, "Register number out of range: %u\n", reg_num);
+        log_error("Register number out of range: %u\n", reg_num);
         return 0;
     }
 
@@ -98,7 +101,7 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
 
         default: {
         // illegal instruction
-            fprintf(stderr, "Illegal instruction\n"); 
+            log_error("Illegal instruction\n"); 
         }
     }
 

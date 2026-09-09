@@ -1,5 +1,6 @@
 #include "instructions/rtype.h"
 #include "cpu.h"
+#include "log.h"
 
 #include <stdio.h>
 

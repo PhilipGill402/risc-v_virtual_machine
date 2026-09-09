@@ -1,5 +1,6 @@
 #include "csrs/csr.h"
 #include "csrs/csr_def.h"
+#include "csrs/mcsr.h"
 #include "cpu.h"
 
 static uint8_t csr_can_write(uint16_t address, priviledge_t priviledge) {
@@ -61,4 +62,8 @@ csr_status_t csr_write(cpu_t* cpu, uint16_t address, uint64_t value) {
     }
 
     return CSR_OK;
+}
+
+void csr_load(cpu_t* cpu) {
+    mcsr_load_table(cpu);
 }

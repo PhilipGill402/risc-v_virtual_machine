@@ -5,7 +5,6 @@
 #include "memory.h"
 #include "csrs/csr.h"
 
-
 typedef struct cpu_t {
     uint64_t regs[32];
     uint64_t csrs[4096];
