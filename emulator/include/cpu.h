@@ -3,10 +3,14 @@
 
 #include <stdint.h>
 #include "memory.h"
+#include "csrs/csr.h"
+
 
 typedef struct cpu_t {
     uint64_t regs[32];
+    uint64_t csrs[4096];
     uint64_t pc;
+    priviledge_t priviledge;
 } cpu_t;
 
 cpu_t cpu_init();

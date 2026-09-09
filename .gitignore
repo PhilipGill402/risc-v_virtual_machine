@@ -3,6 +3,7 @@ riscv_vm
 test_vm
 build/
 riscv-unprivileged.pdf
+riscv-privileged.pdf
 script.dbg
 save.dump
 riscv_debug
