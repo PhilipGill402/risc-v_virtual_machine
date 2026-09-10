@@ -67,3 +67,9 @@ csr_status_t csr_write(cpu_t* cpu, uint16_t address, uint64_t value) {
 void csr_load(cpu_t* cpu) {
     mcsr_load_table(cpu);
 }
+
+void csr_reset(cpu_t* cpu) {
+    mcsr_reset(cpu);
+}
+
+

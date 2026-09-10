@@ -8,5 +8,6 @@
 #define MTVEC_VECTORED_MODE 0x1
 
 void mcsr_load_table(cpu_t* cpu);
+void mcsr_reset(cpu_t* cpu);
 
 #endif

@@ -19,6 +19,8 @@ cpu_t cpu_init() {
 void cpu_reset(cpu_t* cpu) {
     cpu->pc = MEM_BASE;
     cpu->priviledge = M_MODE;
+
+    csr_reset(cpu);
 }
 
 uint32_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
