@@ -10,6 +10,8 @@ typedef struct cpu_t {
     uint64_t csrs[4096];
     uint64_t pc;
     priviledge_t priviledge;
+
+    uint8_t exception_caused;
 } cpu_t;
 
 cpu_t cpu_init();

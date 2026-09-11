@@ -1,6 +1,6 @@
 #include "instructions/utype.h"
 #include "cpu.h"
-#include "log.h"
+#include "exception.h"
 #include <stdio.h>
 
 static void lui(cpu_t* cpu, memory_t* mem, utype_t instruction) {
@@ -22,6 +22,6 @@ void executeU(cpu_t* cpu, memory_t* mem, utype_t instruction) {
     else if (opcode == AUIPC)
         auipc(cpu, mem, instruction);
     else 
-        log_error("Illegal instruction\n");
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
     
 }

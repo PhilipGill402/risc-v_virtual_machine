@@ -1,6 +1,6 @@
 #include "instructions/btype.h"
 #include "cpu.h"
-#include "log.h"
+#include "exception.h"
 #include <stdio.h>
 
 static void beq(cpu_t* cpu, memory_t* mem, btype_t instruction) {
@@ -71,6 +71,6 @@ void executeB(cpu_t* cpu, memory_t* mem, btype_t instruction) {
         case 0x5: bge(cpu, mem, instruction); break;
         case 0x6: bltu(cpu, mem, instruction); break;
         case 0x7: bgeu(cpu, mem, instruction); break;
-        default: log_error("Illegal instruction\n");
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
     }
 }

@@ -1,8 +1,6 @@
 #include "instructions/rtype.h"
 #include "cpu.h"
-#include "log.h"
-
-#include <stdio.h>
+#include "exception.h"
 
 static void add(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t op1 = cpu_read_reg(cpu, instruction.rs1);
@@ -144,10 +142,10 @@ static void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
         }
         case 0x6: or_op(cpu, mem, instruction); return;
         case 0x7: and_op(cpu, mem, instruction); return;
-        default: log_error("Illegal instruction\n"); return;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); return;
     }
 
-    log_error("Illegal instruction\n");
+    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
 }
 
 static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
@@ -173,10 +171,10 @@ static void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
                 sraw(cpu, mem, instruction);
             return;
         }; 
-        default: log_error("Illegal instruction\n"); return;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); return;
     }
 
-    log_error("Illegal instruction\n");
+    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
 }
 
 void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
@@ -187,7 +185,7 @@ void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     else if (opcode == OP_32)
         dispatch_op_32(cpu, mem, instruction);
     else
-        log_error("Illegal instruction\n");
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
 }
 
 

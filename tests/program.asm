@@ -2,6 +2,8 @@
     .globl _start
 
 _start:
+    ecall
+
     # x5 = 10
     addi x5, x0, 10
 

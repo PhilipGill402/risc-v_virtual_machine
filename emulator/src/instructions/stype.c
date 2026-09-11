@@ -1,6 +1,6 @@
 #include "instructions/stype.h"
 #include "cpu.h"
-#include "log.h"
+#include "exception.h"
 #include <stdio.h>
 
 static void sb(cpu_t* cpu, memory_t* mem, stype_t instruction) {
@@ -37,6 +37,6 @@ void executeS(cpu_t* cpu, memory_t* mem, stype_t instruction) {
         case 0x1: sh(cpu, mem, instruction); break;
         case 0x2: sw(cpu, mem, instruction); break;
         case 0x3: sd(cpu, mem, instruction); break;
-        default: log_error("Illegal instruction\n");
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
     }
 }

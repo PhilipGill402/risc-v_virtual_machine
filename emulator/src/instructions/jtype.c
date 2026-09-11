@@ -1,6 +1,6 @@
 #include "instructions/jtype.h"
 #include "cpu.h"
-#include "log.h"
+#include "exception.h"
 #include <stdio.h>
 
 void jal(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
@@ -15,7 +15,7 @@ void jal(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
 
 void executeJ(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
     if ((opcode_t)instruction.opcode != JAL) {
-        log_debug("Illegal instruction\n");
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
         return;
     }
 

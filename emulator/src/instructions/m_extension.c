@@ -1,6 +1,6 @@
 #include "instructions/m_extension.h"
 #include "cpu.h"
-#include "log.h"
+#include "exception.h"
 #include <stdio.h>
 
 static void mul(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
@@ -149,7 +149,7 @@ void dispatch_m_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
             case 0x7: remu(cpu, mem, instruction); return;
     }
 
-    log_error("Illegal instruction\n");
+    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
 }
 
 void dispatch_m_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
@@ -161,5 +161,5 @@ void dispatch_m_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
             case 0x7: remuw(cpu, mem, instruction); return;
     }
 
-    log_error("Illegal instruction\n");
+    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
 }

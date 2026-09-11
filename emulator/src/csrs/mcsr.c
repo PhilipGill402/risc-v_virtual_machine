@@ -115,7 +115,7 @@ void mcsr_load_table(cpu_t* cpu) {
 void mcsr_reset(cpu_t* cpu) {
     cpu->csrs[CSR_MISA] = (2ULL << 62) | (1ULL << 8) | (1ULL << 12);
     cpu->csrs[CSR_MSTATUS] = 3ULL << 11; // MIE = 0, MPP = M
-    cpu->csrs[CSR_MTVEC] = 0; // MIE = 0, MPP = M
+    cpu->csrs[CSR_MTVEC] = MEM_BASE; // MIE = 0, MPP = M
     cpu->csrs[CSR_MEDELEG] = 0;
     cpu->csrs[CSR_MIDELEG] = 0;
     cpu->csrs[CSR_MIP] = 0;

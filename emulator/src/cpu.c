@@ -8,6 +8,7 @@
 #include "instructions/btype.h"
 #include "csrs/csr.h"
 #include "log.h"
+#include "exception.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -20,6 +21,7 @@ cpu_t cpu_init() {
 void cpu_reset(cpu_t* cpu) {
     cpu->pc = MEM_BASE;
     cpu->priviledge = M_MODE;
+    cpu->exception_caused = 0;
     
     memset(cpu->regs, 0, sizeof(cpu->regs));
     csr_reset(cpu);
@@ -104,11 +106,13 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
         }
 
         default: {
-        // illegal instruction
-            log_error("Illegal instruction\n"); 
+            // illegal instruction
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
         }
     }
 
-    if (opcode != JAL && opcode != JALR && opcode != BRANCH)
+    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->exception_caused)
         cpu->pc += 4;
+
+    cpu->exception_caused = 0;
 }
