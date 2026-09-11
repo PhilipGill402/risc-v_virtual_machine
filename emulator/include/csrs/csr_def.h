@@ -36,4 +36,6 @@ typedef struct {
 
 extern csr_descriptor_t csr_table[4096];
 
+uint64_t set_bit(uint64_t value, uint8_t bit_num, uint8_t bit);
+
 #endif

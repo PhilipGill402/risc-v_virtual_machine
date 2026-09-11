@@ -20,7 +20,7 @@ _start:
 
     # load it back into x9
     ld x9, 0(x8)
-
+    
     # should be equal, so branch
     beq x7, x9, equal
 

@@ -1,15 +1,6 @@
 #include "csrs/mcsr.h"
 #include "cpu.h"
 
-static uint64_t set_bit(uint64_t value, uint8_t bit_num, uint8_t bit) {
-    if (bit)
-        value |= 1ULL << bit_num;
-    else
-        value &= ~(1ULL << bit_num);
-
-    return value;
-}
-
 static void misa_write(cpu_t* cpu, uint64_t value) {
     (void)cpu;
     (void)value;

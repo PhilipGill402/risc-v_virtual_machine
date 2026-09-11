@@ -1,6 +1,7 @@
 #include "instructions/itype.h"
 #include "cpu.h"
 #include "log.h"
+#include "exception.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -169,7 +170,16 @@ static void jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    log_error("ECALL not implemented\n");
+    uint64_t cause = EXC_ECALL_U_MODE; 
+    if (cpu->priviledge == M_MODE)
+        cause = EXC_ECALL_M_MODE;
+    else if (cpu->priviledge == S_MODE)
+        cause = EXC_ECALL_S_MODE;
+    else if (cpu->priviledge == U_MODE)
+        cause = EXC_ECALL_U_MODE;
+
+    raise_exception(cpu, cause, 0);
+    printf("%x\n", cpu->pc);
 }
 
 static void ebreak(cpu_t* cpu, memory_t* mem, itype_t instruction) {
