@@ -1,4 +1,4 @@
-#include "instructions/m_extension.h"
+#include "instructions/dispatchers/m_extension.h"
 #include "cpu.h"
 #include "exception.h"
 #include <stdio.h>
