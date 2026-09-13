@@ -14,6 +14,8 @@
 
 cpu_t cpu_init() {
     cpu_t cpu = { 0 };
+
+    csr_load(&cpu);
     
     return cpu;
 }

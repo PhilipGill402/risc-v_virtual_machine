@@ -2,7 +2,11 @@
 #include "cpu.h"
 #include "csrs/csr_def.h"
 
+#include "log.h"
+
 void raise_exception(cpu_t* cpu, uint64_t cause, uint64_t tvalue) {
+    log_debug("Exception raised\n");
+
     cpu->csrs[CSR_MEPC] = cpu->pc;
     cpu->csrs[CSR_MCAUSE] = cause;
     cpu->csrs[CSR_MTVAL] = tvalue;

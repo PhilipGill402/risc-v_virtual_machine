@@ -144,4 +144,11 @@ const char* op_mnemonics[8] = {
     NULL
 };
 
+const char* system_alt_mnemonics[4096] = {
+    [0x000] = "ecall",
+    [0x001] = "ebreak",
+    [0x102] = "sret",
+    [0x105] = "wfi",
+    [0x302] = "mret",
+};
 

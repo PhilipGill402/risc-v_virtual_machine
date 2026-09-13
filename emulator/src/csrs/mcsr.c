@@ -1,6 +1,8 @@
 #include "csrs/mcsr.h"
 #include "cpu.h"
 
+#include <stdio.h>
+
 static void misa_write(cpu_t* cpu, uint64_t value) {
     (void)cpu;
     (void)value;

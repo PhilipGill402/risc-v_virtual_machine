@@ -68,10 +68,16 @@ char* disassemble_line(memory_t* mem, uint64_t addr) {
         }
 
         case SYSTEM: {
-            if (instruction == 0x00000073)
-                snprintf(buffer, BUFFER_SIZE, "ecall");
-            else if (instruction == 0x00100073)
-                snprintf(buffer, BUFFER_SIZE, "ebreak");
+            itype_t decoded = decodeI(instruction);  
+            if (decoded.funct3 == 0) {
+                uint16_t imm = (uint16_t)(instruction >> 20);
+                snprintf(buffer, BUFFER_SIZE, "%s", system_alt_mnemonics[imm]);
+            } else if (decoded.funct3 >= 1 && decoded.funct3 <= 3){
+                snprintf(buffer, BUFFER_SIZE, "%s x%u, 0x%03x, x%u", system_mnemonics[decoded.funct3], decoded.rd, (uint16_t)decoded.imm, decoded.rs1);
+            } else if (decoded.funct3 >= 5 && decoded.funct3 <= 7) {
+                snprintf(buffer, BUFFER_SIZE, "%s x%u 0x%03x, %u", system_mnemonics[decoded.funct3], decoded.rd, (uint16_t)decoded.imm, decoded.rs1);
+            }
+
             break;
         }
 

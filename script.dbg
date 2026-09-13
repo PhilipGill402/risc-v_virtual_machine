@@ -1,4 +1,1 @@
 load tests/program.bin
-step 1
-state
-mem 0x80000000

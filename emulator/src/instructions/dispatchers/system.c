@@ -1,8 +1,10 @@
 #include "instructions/dispatchers/system.h"
-#include "csr_def.h"
-#include "csr.h"
+#include "csrs/csr_def.h"
+#include "csrs/csr.h"
 #include "cpu.h"
 #include "exception.h"
+
+#include <stdio.h>
 
 static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t cause = EXC_ECALL_U_MODE; 
@@ -12,7 +14,7 @@ static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         cause = EXC_ECALL_S_MODE;
     else if (cpu->priviledge == U_MODE)
         cause = EXC_ECALL_U_MODE;
-
+    
     raise_exception(cpu, cause, 0);
 }
 
@@ -65,15 +67,16 @@ static void csrrw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint16_t addr = (uint16_t)instruction.imm;
     uint64_t new = cpu_read_reg(cpu, instruction.rs1);
     uint64_t old = 0;
+    csr_status_t status = CSR_OK; 
 
     if (instruction.rd != 0)
-        csr_status_t status = csr_read(cpu, addr, &old);
+        status = csr_read(cpu, addr, &old);
 
     if (status != CSR_OK) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
         return;
     }
-
+    
     status = csr_write(cpu, addr, new);
 
     if (status != CSR_OK) {

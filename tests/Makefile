@@ -17,7 +17,7 @@ RISCV_LD      = riscv64-elf-ld
 RISCV_OBJCOPY = riscv64-elf-objcopy
 RISCV_OBJDUMP = riscv64-elf-objdump
 
-RISCV_SRC = program.asm
+RISCV_SRC = test_interrupts.asm
 RISCV_OBJ = $(OBJ_DIR)/program.o
 RISCV_ELF = $(OBJ_DIR)/program.elf
 RISCV_BIN = program.bin
@@ -39,7 +39,7 @@ test: $(TARGET)
 
 asm: $(RISCV_SRC)
 	@mkdir -p $(OBJ_DIR)
-	$(RISCV_AS) -march=rv64i -mabi=lp64 $(RISCV_SRC) -o $(RISCV_OBJ)
+	$(RISCV_AS) -march=rv64im_zicsr -mabi=lp64 $(RISCV_SRC) -o $(RISCV_OBJ)
 	$(RISCV_LD) -Ttext=0x80000000 -e _start $(RISCV_OBJ) -o $(RISCV_ELF)
 	$(RISCV_OBJCOPY) -O binary $(RISCV_ELF) $(RISCV_BIN)
 

@@ -3,6 +3,8 @@
 #include "csrs/mcsr.h"
 #include "cpu.h"
 
+#include <stdio.h>
+
 static uint8_t csr_can_write(uint16_t address, priviledge_t priviledge) {
     if ((uint8_t)((address >> 10) & 0x03) == CSR_READ_ONLY)
         return 0;
@@ -25,10 +27,10 @@ csr_status_t csr_read(cpu_t* cpu, uint16_t address, uint64_t* value) {
         return CSR_ILLEGAL;
 
     csr_descriptor_t csr = csr_table[address];
-
+    
     if (!csr.implemented)
         return CSR_ILLEGAL;
-
+    
     if (!csr_can_read(address, cpu->priviledge))
         return CSR_ILLEGAL;
     
