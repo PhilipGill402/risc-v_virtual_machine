@@ -12,6 +12,10 @@
 #include <stdio.h>
 #include <string.h>
 
+static inline uint8_t is_mret(uint32_t instruction) {
+    return instruction == 0x30200073;
+}
+
 cpu_t cpu_init() {
     cpu_t cpu = { 0 };
 
@@ -113,7 +117,7 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
         }
     }
 
-    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->exception_caused)
+    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->exception_caused, !is_mret(instruction))
         cpu->pc += 4;
 
     cpu->exception_caused = 0;
