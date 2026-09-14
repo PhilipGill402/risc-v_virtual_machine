@@ -1,6 +1,6 @@
 #include "instructions/dispatchers/jal.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 static void jal(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
     int64_t offset = (int64_t)instruction.imm;

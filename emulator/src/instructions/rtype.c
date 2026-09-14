@@ -3,7 +3,7 @@
 #include "instructions/dispatchers/op.h"
 #include "instructions/dispatchers/op_32.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     opcode_t opcode = (opcode_t)instruction.opcode;

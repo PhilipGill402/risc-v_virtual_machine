@@ -1,6 +1,6 @@
 #include "instructions/dispatchers/op.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 static void add(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t op1 = cpu_read_reg(cpu, instruction.rs1);

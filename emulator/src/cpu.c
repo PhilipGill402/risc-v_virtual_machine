@@ -6,14 +6,39 @@
 #include "instructions/stype.h"
 #include "instructions/utype.h"
 #include "instructions/btype.h"
+#include "csrs/csr_def.h"
 #include "csrs/csr.h"
 #include "log.h"
-#include "exception.h"
+#include "trap.h"
 #include <stdio.h>
 #include <string.h>
 
 static inline uint8_t is_mret(uint32_t instruction) {
     return instruction == 0x30200073;
+}
+
+static void cpu_check_interrupts(cpu_t* cpu) {
+    uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
+    uint64_t mip = cpu->csrs[CSR_MIP];
+    uint64_t mie = cpu->csrs[CSR_MIE];
+    
+    uint8_t global_mie = (uint8_t)(mstatus >> 3) & 0x1; // are interrupts enabled?
+    
+    if (!global_mie)
+        return;
+
+    uint64_t pending = mip & mie; // checks if an interrupt is pending and it is enabled
+
+    if (!pending)
+        return;
+
+    if (pending & (1ULL << 11)) { // machine external interrupt
+        
+    } else if (pending & (1ULL << 3)) { // machine software interrupt
+    
+    } else if (pending & (1ULL << 7)) { //machine timer interrupt
+    
+    }
 }
 
 cpu_t cpu_init() {
@@ -117,8 +142,14 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
         }
     }
 
-    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->exception_caused, !is_mret(instruction))
+    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->exception_caused && !is_mret(instruction))
         cpu->pc += 4;
 
     cpu->exception_caused = 0;
+
+    // check pending interrupts
+    
 }
+
+
+

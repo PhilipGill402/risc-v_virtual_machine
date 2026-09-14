@@ -1,5 +1,5 @@
 #include "instructions/dispatchers/branch.h"
-#include "exception.h"
+#include "trap.h"
 #include "cpu.h"
 #include <stdio.h>
 

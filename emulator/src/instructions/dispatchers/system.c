@@ -2,7 +2,7 @@
 #include "csrs/csr_def.h"
 #include "csrs/csr.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 #include <stdio.h>
 

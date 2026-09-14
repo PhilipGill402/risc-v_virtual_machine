@@ -1,4 +1,4 @@
-#include "exception.h"
+#include "trap.h"
 #include "cpu.h"
 #include "csrs/csr_def.h"
 
@@ -29,4 +29,8 @@ void raise_exception(cpu_t* cpu, uint64_t cause, uint64_t tvalue) {
 
     cpu->pc = cpu->csrs[CSR_MTVEC] & ~0x3ULL; // exclude mode bytes (also guarantees 4-byte boundary)
     cpu->exception_caused = 1;
+}
+
+void dispatch_interrupt(cpu_t* cpu, uint64_t cause, uint64_t tvalue) {
+
 }

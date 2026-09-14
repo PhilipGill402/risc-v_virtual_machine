@@ -1,6 +1,6 @@
 #include "instructions/dispatchers/load.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 static void lb(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);

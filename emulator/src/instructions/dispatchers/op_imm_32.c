@@ -1,6 +1,6 @@
 #include "instructions/dispatchers/op_imm_32.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 static void addiw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint32_t rs1 = (uint32_t)(cpu_read_reg(cpu, instruction.rs1));

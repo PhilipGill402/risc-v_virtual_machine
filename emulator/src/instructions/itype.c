@@ -6,10 +6,8 @@
 #include "instructions/dispatchers/system.h"
 #include "instructions/dispatchers/misc_mem.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 #include "log.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 
 void executeI(cpu_t* cpu, memory_t* mem, itype_t instruction) {

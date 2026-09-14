@@ -1,7 +1,6 @@
 #include "instructions/dispatchers/m_extension.h"
 #include "cpu.h"
-#include "exception.h"
-#include <stdio.h>
+#include "trap.h"
 
 static void mul(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);

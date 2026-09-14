@@ -1,6 +1,6 @@
 #include "instructions/dispatchers/store.h"
 #include "cpu.h"
-#include "exception.h"
+#include "trap.h"
 
 static void sb(cpu_t* cpu, memory_t* mem, stype_t instruction) {
     uint8_t value = (uint8_t)cpu_read_reg(cpu, instruction.rs2);
