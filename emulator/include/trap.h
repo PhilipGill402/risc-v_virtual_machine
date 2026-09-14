@@ -23,6 +23,6 @@
 typedef struct cpu_t cpu_t;
 
 void raise_exception(cpu_t* cpu, uint64_t cause, uint64_t tvalue);
-void dispatch_interrupt(cpu_t* cpu, uint64_t cause, uint64_t tvalue);
+void raise_interrupt(cpu_t* cpu, uint64_t cause);
 
 #endif

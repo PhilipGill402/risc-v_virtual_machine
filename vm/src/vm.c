@@ -7,6 +7,9 @@ vm_t vm_init() {
     vm_t vm = { 0 };
     vm.cpu = cpu_init();
     vm.ram = memory_init();
+
+    timer_t timer = { 0 };
+    vm.timer = timer;
     
     cpu_reset(&vm.cpu); 
     

@@ -4,10 +4,12 @@
 #include <stdint.h>
 #include "cpu.h"
 #include "memory.h"
+#include "timer.h"
 
 typedef struct VM {
     cpu_t cpu;
     memory_t ram;
+    timer_t timer;
 } vm_t;
 
 vm_t vm_init();

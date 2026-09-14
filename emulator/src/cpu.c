@@ -17,78 +17,14 @@ static inline uint8_t is_mret(uint32_t instruction) {
     return instruction == 0x30200073;
 }
 
-static void cpu_check_interrupts(cpu_t* cpu) {
-    uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
-    uint64_t mip = cpu->csrs[CSR_MIP];
-    uint64_t mie = cpu->csrs[CSR_MIE];
-    
-    uint8_t global_mie = (uint8_t)(mstatus >> 3) & 0x1; // are interrupts enabled?
-    
-    if (!global_mie)
-        return;
-
-    uint64_t pending = mip & mie; // checks if an interrupt is pending and it is enabled
-
-    if (!pending)
-        return;
-
-    if (pending & (1ULL << 11)) { // machine external interrupt
-        
-    } else if (pending & (1ULL << 3)) { // machine software interrupt
-    
-    } else if (pending & (1ULL << 7)) { //machine timer interrupt
-    
-    }
+static void increment_pc(cpu_t* cpu, uint32_t instruction) {
+    uint8_t raw_opcode = instruction & 0x7F;
+    opcode_t opcode = (opcode_t)raw_opcode; 
+    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->trap_taken && !is_mret(instruction))
+        cpu->pc += 4;
 }
 
-cpu_t cpu_init() {
-    cpu_t cpu = { 0 };
-
-    csr_load(&cpu);
-    
-    return cpu;
-}
-
-void cpu_reset(cpu_t* cpu) {
-    cpu->pc = MEM_BASE;
-    cpu->priviledge = M_MODE;
-    cpu->exception_caused = 0;
-    
-    memset(cpu->regs, 0, sizeof(cpu->regs));
-    csr_reset(cpu);
-}
-
-uint32_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
-    return mem_read32(mem, cpu->pc);
-}
-
-void cpu_write_reg(cpu_t* cpu, uint8_t reg_num, uint64_t value) {
-    if (reg_num == 0)
-        return;
-    
-    if (reg_num >= 32) {
-        log_error("Register number out of range: %u\n", reg_num);
-        return;
-    }
-
-    cpu->regs[reg_num] = value;
-}
-
-uint64_t cpu_read_reg(cpu_t* cpu, uint8_t reg_num) {
-    if (reg_num == 0)
-        return 0;
-
-    if (reg_num >= 32) {
-        log_error("Register number out of range: %u\n", reg_num);
-        return 0;
-    }
-
-    return cpu->regs[reg_num];
-}
-
-void cpu_step(cpu_t* cpu, memory_t* mem) {
-    uint32_t instruction = cpu_fetch(cpu, mem);
-
+static void dispatch_instruction(cpu_t* cpu, memory_t* mem, uint32_t instruction) {
     uint8_t raw_opcode = instruction & 0x7F;
     opcode_t opcode = (opcode_t)raw_opcode;
 
@@ -141,15 +77,94 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
             raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
         }
     }
-
-    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->exception_caused && !is_mret(instruction))
-        cpu->pc += 4;
-
-    cpu->exception_caused = 0;
-
-    // check pending interrupts
-    
 }
 
+static void cpu_check_interrupts(cpu_t* cpu) {
+    uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
+    uint64_t mip = cpu->csrs[CSR_MIP];
+    uint64_t mie = cpu->csrs[CSR_MIE];
+    
+    uint8_t global_mie = (uint8_t)(mstatus >> 3) & 0x1; // are interrupts enabled?
+    
+    if (!global_mie)
+        return;
 
+    uint64_t pending = mip & mie; // checks if an interrupt is pending and it is enabled
+
+    if (!pending)
+        return;
+
+    if (pending & (1ULL << 11)) { // machine external interrupt
+        
+    } else if (pending & (1ULL << 3)) { // machine software interrupt
+    
+    } else if (pending & (1ULL << 7)) { //machine timer interrupt
+        log_debug("Timer interrupt generated\n");
+        raise_interrupt(cpu, 0x7);
+    }
+}
+
+cpu_t cpu_init() {
+    cpu_t cpu = { 0 };
+
+    csr_load(&cpu);
+    
+    return cpu;
+}
+
+void cpu_reset(cpu_t* cpu) {
+    cpu->pc = MEM_BASE;
+    cpu->priviledge = M_MODE;
+    cpu->trap_taken = 0;
+    
+    memset(cpu->regs, 0, sizeof(cpu->regs));
+    csr_reset(cpu);
+}
+
+uint32_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
+    return mem_read32(mem, cpu->pc);
+}
+
+void cpu_write_reg(cpu_t* cpu, uint8_t reg_num, uint64_t value) {
+    if (reg_num == 0)
+        return;
+    
+    if (reg_num >= 32) {
+        log_error("Register number out of range: %u\n", reg_num);
+        return;
+    }
+
+    cpu->regs[reg_num] = value;
+}
+
+uint64_t cpu_read_reg(cpu_t* cpu, uint8_t reg_num) {
+    if (reg_num == 0)
+        return 0;
+
+    if (reg_num >= 32) {
+        log_error("Register number out of range: %u\n", reg_num);
+        return 0;
+    }
+
+    return cpu->regs[reg_num];
+}
+
+void cpu_step(cpu_t* cpu, memory_t* mem) {
+    uint32_t instruction = cpu_fetch(cpu, mem);
+    dispatch_instruction(cpu, mem, instruction);
+    
+    
+    cpu_check_interrupts(cpu);
+
+    
+    increment_pc(cpu, instruction);
+    cpu->trap_taken = 0;
+}
+
+void cpu_set_interrupt_pending(cpu_t* cpu, uint8_t cause, uint8_t pending) {
+    if (pending)
+        cpu->csrs[CSR_MIP] |= 1ULL << cause;
+    else
+        cpu->csrs[CSR_MIP] &= ~(1ULL << cause);
+}
 
