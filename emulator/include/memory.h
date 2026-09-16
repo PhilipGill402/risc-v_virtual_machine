@@ -9,8 +9,6 @@
 
 typedef struct memory {
     uint8_t* mem;
-
-    
 } memory_t;
 
 memory_t memory_init();

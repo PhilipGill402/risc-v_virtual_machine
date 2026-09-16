@@ -14,7 +14,7 @@ static uint64_t sstatus_read(cpu_t* cpu) {
     // UXL = 2
     value |= (2ULL << 32);
 
-    return value
+    return value;
 }
 
 static void scsr_load_sstatus(cpu_t* cpu) {

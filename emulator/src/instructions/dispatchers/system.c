@@ -23,6 +23,11 @@ static void ebreak(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+    if (cpu->priviledge == U_MODE) {
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        return;
+    }
+
     uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
 
     uint8_t spp = (uint8_t)(mstatus >> 8) & 0x1;
@@ -30,9 +35,7 @@ static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     
     mstatus = set_bit(mstatus, 1, spie); // SIE = SPIE
     mstatus = set_bit(mstatus, 5, 1); // SPIE = 1
-    
-    // MPP = U mode
-    mstatus = set_bit(mstatus, 8, U_MODE); // SPP = U_MODE
+    mstatus = set_bit(mstatus, 8, 0); // SPP = 0
     
     cpu->priviledge = spp;
     cpu->csrs[CSR_MSTATUS] = mstatus;
@@ -42,6 +45,11 @@ static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void mret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+    if (cpu->priviledge != M_MODE) {
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        return;
+    }
+
     uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
 
     uint8_t mpp = (uint8_t)(mstatus >> 11) & 0x3;
@@ -50,9 +58,9 @@ static void mret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     mstatus = set_bit(mstatus, 3, mpie); // MIE = MPIE
     mstatus = set_bit(mstatus, 7, 1); // MPIE = 1
     
-    // MPP = M mode, change to user when U mode is implemented
-    mstatus = set_bit(mstatus, 11, 1);
-    mstatus = set_bit(mstatus, 12, 1);
+    // MPP = U mode
+    mstatus = set_bit(mstatus, 11, 0);
+    mstatus = set_bit(mstatus, 12, 0);
     
     cpu->priviledge = mpp;
     cpu->csrs[CSR_MSTATUS] = mstatus;
