@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "cpu.h"
 #include "cli.h"
+#include "csrs/csr_def.h"
 
 int main() {
     cpu_t cpu = cpu_init();

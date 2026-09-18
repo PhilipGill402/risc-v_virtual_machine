@@ -17,7 +17,7 @@ RISCV_LD      = riscv64-elf-ld
 RISCV_OBJCOPY = riscv64-elf-objcopy
 RISCV_OBJDUMP = riscv64-elf-objdump
 
-RISCV_SRC = test_interrupts.asm
+RISCV_SRC = program.asm
 RISCV_OBJ = $(OBJ_DIR)/program.o
 RISCV_ELF = $(OBJ_DIR)/program.elf
 RISCV_BIN = program.bin
