@@ -10,6 +10,7 @@
 #include "csrs/csr.h"
 #include "log.h"
 #include "trap.h"
+#include "paging.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -122,7 +123,11 @@ void cpu_reset(cpu_t* cpu) {
 }
 
 uint32_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
-    return mem_read32(mem, cpu->pc);
+    translation_result_t result = translate_address(cpu, mem, cpu->pc, ACCESS_FETCH);
+    if (result.result != TRANSLATION_SUCCESS)
+        raise_exception(cpu, result.result, cpu->pc);
+
+    return mem_read32(mem, result.physical_address);
 }
 
 void cpu_write_reg(cpu_t* cpu, uint8_t reg_num, uint64_t value) {
@@ -153,9 +158,7 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
     uint32_t instruction = cpu_fetch(cpu, mem);
     dispatch_instruction(cpu, mem, instruction);
     
-    
     cpu_check_interrupts(cpu);
-
     
     increment_pc(cpu, instruction);
     cpu->trap_taken = 0;
@@ -166,5 +169,77 @@ void cpu_set_interrupt_pending(cpu_t* cpu, uint8_t cause, uint8_t pending) {
         cpu->csrs[CSR_MIP] |= 1ULL << cause;
     else
         cpu->csrs[CSR_MIP] &= ~(1ULL << cause);
+}
+
+uint8_t cpu_load8(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS) {
+        raise_exception(cpu, result.result, vaddr);
+        return 0;
+    }
+
+    return mem_read8(mem, result.physical_address);
+}
+
+uint16_t cpu_load16(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS) {
+        raise_exception(cpu, result.result, vaddr);
+        return 0;
+    }
+
+    return mem_read16(mem, result.physical_address);
+}
+
+uint32_t cpu_load32(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS) {
+        raise_exception(cpu, result.result, vaddr);
+        return 0;
+    }
+
+    return mem_read32(mem, result.physical_address);
+}
+
+uint64_t cpu_load64(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS) {
+        raise_exception(cpu, result.result, vaddr);
+        return 0;
+    }
+
+    return mem_read64(mem, result.physical_address);
+}
+
+void cpu_store8(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint8_t value) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS)
+        raise_exception(cpu, result.result, vaddr);
+
+    mem_write8(mem, result.physical_address, value);
+}
+
+void cpu_store16(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint16_t value) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS)
+        raise_exception(cpu, result.result, vaddr);
+
+    mem_write16(mem, result.physical_address, value);
+}
+
+void cpu_store32(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint32_t value) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS)
+        raise_exception(cpu, result.result, vaddr);
+
+    mem_write32(mem, result.physical_address, value);
+}
+
+void cpu_store64(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint64_t value) {
+    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+    if (result.result != TRANSLATION_SUCCESS)
+        raise_exception(cpu, result.result, vaddr);
+
+    mem_write64(mem, result.physical_address, value);
 }
 

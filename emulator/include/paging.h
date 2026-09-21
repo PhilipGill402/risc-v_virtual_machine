@@ -3,15 +3,16 @@
 
 #include <stdint.h>
 #include "memory.h"
+#include "trap.h"
 
-typedef struct cpu cpu_t;
+typedef struct cpu_t cpu_t;
 
 typedef enum translation_error {
-        TRANSLATION_SUCCESS,
-        INSTRUCTION_PAGE_FAULT,
-        LOAD_PAGE_FAULT,
-        STORE_PAGE_FAULT
-} translation_error_t
+        TRANSLATION_SUCCESS = 0,
+        FETCH_PAGE_FAULT = EXC_INSTR_PAGE_FAULT,
+        LOAD_PAGE_FAULT = EXC_LOAD_PAGE_FAULT,
+        STORE_PAGE_FAULT = EXC_STORE_PAGE_FAULT,
+} translation_error_t;
 
 typedef struct translation_result {
     uint64_t physical_address;

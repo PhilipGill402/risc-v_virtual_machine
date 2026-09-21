@@ -4,43 +4,43 @@
 
 static void lb(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint8_t value = mem_read8(mem, addr);
+    uint8_t value = cpu_load8(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, sign_extend(value, 8));
 }
 
 static void lh(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint16_t value = mem_read16(mem, addr);
+    uint16_t value = cpu_load16(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, sign_extend(value, 16));
 }
 
 static void lw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint32_t value = mem_read32(mem, addr);
+    uint32_t value = cpu_load32(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, sign_extend(value, 32));
 }
 
 static void ld(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint64_t value = mem_read64(mem, addr);
+    uint64_t value = cpu_load64(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, value);   
 }
 
 static void lbu(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint8_t value = mem_read8(mem, addr);
+    uint8_t value = cpu_load8(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, value);
 }
 
 static void lhu(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint16_t value = mem_read16(mem, addr);
+    uint16_t value = cpu_load16(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, value);
 }
 
 static void lwu(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + cpu_read_reg(cpu, instruction.rs1);
-    uint32_t value = mem_read32(mem, addr);
+    uint32_t value = cpu_load32(cpu, mem, addr);
     cpu_write_reg(cpu, instruction.rd, value);
 }
 

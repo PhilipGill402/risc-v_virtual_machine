@@ -22,4 +22,14 @@ void cpu_write_reg(cpu_t* cpu, uint8_t reg_num, uint64_t value);
 uint64_t cpu_read_reg(cpu_t* cpu, uint8_t reg_num);
 void cpu_set_interrupt_pending(cpu_t* cpu, uint8_t cause, uint8_t pending);
 
+uint8_t cpu_load8(cpu_t* cpu, memory_t* mem, uint64_t vaddr);
+uint16_t cpu_load16(cpu_t* cpu, memory_t* mem, uint64_t vaddr);
+uint32_t cpu_load32(cpu_t* cpu, memory_t* mem, uint64_t vaddr);
+uint64_t cpu_load64(cpu_t* cpu, memory_t* mem, uint64_t vaddr);
+
+void cpu_store8(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint8_t value);
+void cpu_store16(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint16_t value);
+void cpu_store32(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint32_t value);
+void cpu_store64(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint64_t value);
+
 #endif

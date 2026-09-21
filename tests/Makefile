@@ -1,16 +1,21 @@
 CC = clang
 
-CFLAGS = -Wall -Wextra -std=c11 -I../emulator/include
+CFLAGS = -Wall -Wextra -std=c11 \
+	-I../emulator/include \
+	-I../utils/include
 
 OBJ_DIR = ../build/test
 
 TARGET = ../test_vm
 
-TEST_SRC = test.c
+TEST_SRC = test_paging.c
 TEST_OBJ = $(OBJ_DIR)/test.o
 
 EMULATOR_DIR = ../emulator
 EMULATOR_LIB = ../build/libriscv.a
+
+UTILS_DIR = ../utils
+UTILS_LIB = ../build/libutils.a
 
 RISCV_AS      = riscv64-elf-as
 RISCV_LD      = riscv64-elf-ld
@@ -27,12 +32,18 @@ all: $(TARGET)
 $(EMULATOR_LIB):
 	$(MAKE) -C $(EMULATOR_DIR)
 
+$(UTILS_LIB):
+	$(MAKE) -C $(UTILS_DIR)
+
 $(TEST_OBJ): $(TEST_SRC)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(TEST_OBJ) $(EMULATOR_LIB)
-	$(CC) $(CFLAGS) -o $@ $(TEST_OBJ) $(EMULATOR_LIB)
+$(TARGET): $(TEST_OBJ) $(EMULATOR_LIB) $(UTILS_LIB)
+	$(CC) $(CFLAGS) -o $@ \
+		$(TEST_OBJ) \
+		$(EMULATOR_LIB) \
+		$(UTILS_LIB)
 
 test: $(TARGET)
 	$(TARGET)
