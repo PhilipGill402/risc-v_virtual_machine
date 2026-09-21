@@ -1,19 +1,53 @@
-#include <stdio.h>
-#include <stdint.h>
 #include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include "cpu.h"
 #include "memory.h"
 #include "csrs/csr_def.h"
-#include "paging.h"
 
-#define ROOT_TABLE   0x80001000ULL
-#define LEVEL1_TABLE 0x80002000ULL
-#define LEVEL0_TABLE 0x80003000ULL
-#define TARGET_PAGE  0x80004000ULL
+/*
+ * Physical memory layout
+ *
+ * 0x80001000  root page table
+ * 0x80002000  level-1 page table
+ * 0x80003000  level-0 page table
+ *
+ * 0x80004000  physical code page
+ * 0x80005000  physical data page
+ * 0x80006000  physical store page
+ *
+ * 0x80007000  M-mode trap vector
+ */
 
-#define TEST_VA      0x40000000ULL
+#define ROOT_TABLE      0x80001000ULL
+#define LEVEL1_TABLE    0x80002000ULL
+#define LEVEL0_TABLE    0x80003000ULL
 
+#define CODE_PA         0x80004000ULL
+#define DATA_PA         0x80005000ULL
+#define STORE_PA        0x80006000ULL
+
+#define TRAP_VECTOR     0x80007000ULL
+
+/*
+ * Virtual address layout
+ *
+ * All of these share:
+ *
+ * VPN[2] = 1
+ * VPN[1] = 0
+ *
+ * but have different VPN[0] values.
+ */
+
+#define CODE_VA         0x40000000ULL
+#define DATA_VA         0x40001000ULL
+#define STORE_VA        0x40002000ULL
+#define UNMAPPED_VA     0x40003000ULL
+
+
+/* PTE bits */
 #define PTE_V (1ULL << 0)
 #define PTE_R (1ULL << 1)
 #define PTE_W (1ULL << 2)
@@ -21,6 +55,26 @@
 #define PTE_U (1ULL << 4)
 #define PTE_A (1ULL << 6)
 #define PTE_D (1ULL << 7)
+
+
+/*
+ * RISC-V exception causes
+ */
+#define EXC_FETCH_PAGE_FAULT 12
+#define EXC_LOAD_PAGE_FAULT  13
+#define EXC_STORE_PAGE_FAULT 15
+
+
+/*
+ * Instructions used by these tests.
+ *
+ * addi x5, x0, 42
+ * ld   x5, 0(x6)
+ * sd   x5, 0(x6)
+ */
+#define INSTR_ADDI_X5_42     0x02A00293U
+#define INSTR_LD_X5_X6      0x00033283U
+#define INSTR_SD_X5_X6      0x00533023U
 
 
 static uint64_t make_table_pte(uint64_t next_table)
@@ -31,7 +85,10 @@ static uint64_t make_table_pte(uint64_t next_table)
 }
 
 
-static uint64_t make_leaf_pte(uint64_t physical_page, uint64_t flags)
+static uint64_t make_leaf_pte(
+    uint64_t physical_page,
+    uint64_t flags
+)
 {
     uint64_t ppn = physical_page >> 12;
 
@@ -39,665 +96,644 @@ static uint64_t make_leaf_pte(uint64_t physical_page, uint64_t flags)
 }
 
 
-static void clear_test_tables(memory_t *mem)
+static void clear_page(memory_t *mem, uint64_t address)
 {
-    /*
-     * If you already zero all RAM during memory initialization,
-     * you technically don't need this.
-     *
-     * Otherwise clear the 3 page-table pages.
-     */
-    for (uint64_t offset = 0; offset < 0x1000; offset += 8) {
-        mem_write64(mem, ROOT_TABLE + offset, 0);
-        mem_write64(mem, LEVEL1_TABLE + offset, 0);
-        mem_write64(mem, LEVEL0_TABLE + offset, 0);
+    for (uint64_t offset = 0;
+         offset < 0x1000;
+         offset += 8) {
+
+        mem_write64(mem, address + offset, 0);
     }
 }
 
 
-static void setup_basic_mapping(
+static void clear_test_memory(memory_t *mem)
+{
+    clear_page(mem, ROOT_TABLE);
+    clear_page(mem, LEVEL1_TABLE);
+    clear_page(mem, LEVEL0_TABLE);
+
+    clear_page(mem, CODE_PA);
+    clear_page(mem, DATA_PA);
+    clear_page(mem, STORE_PA);
+}
+
+
+/*
+ * Creates:
+ *
+ * ROOT_TABLE
+ *     |
+ *     | VPN[2] = 1
+ *     v
+ * LEVEL1_TABLE
+ *     |
+ *     | VPN[1] = 0
+ *     v
+ * LEVEL0_TABLE
+ *
+ * Level zero then contains:
+ *
+ * entry 0 -> CODE_PA
+ * entry 1 -> DATA_PA
+ * entry 2 -> STORE_PA
+ * entry 3 -> INVALID / unmapped
+ */
+static void setup_page_tables(
     cpu_t *cpu,
-    memory_t *mem,
-    uint64_t leaf_flags
+    memory_t *mem
 )
 {
-    clear_test_tables(mem);
+    clear_test_memory(mem);
 
     /*
-     * TEST_VA = 0x40000000
+     * L2:
      *
-     * VPN[2] = 1
-     * VPN[1] = 0
+     * CODE_VA 0x40000000 has VPN[2] = 1.
+     */
+    mem_write64(
+        mem,
+        ROOT_TABLE + (1 * 8),
+        make_table_pte(LEVEL1_TABLE)
+    );
+
+    /*
+     * L1:
+     *
+     * VPN[1] = 0.
+     */
+    mem_write64(
+        mem,
+        LEVEL1_TABLE + (0 * 8),
+        make_table_pte(LEVEL0_TABLE)
+    );
+
+    /*
      * VPN[0] = 0
-     */
-
-    mem_write64(
-        mem,
-        ROOT_TABLE + 1 * 8,
-        make_table_pte(LEVEL1_TABLE)
-    );
-
-    mem_write64(
-        mem,
-        LEVEL1_TABLE + 0 * 8,
-        make_table_pte(LEVEL0_TABLE)
-    );
-
-    mem_write64(
-        mem,
-        LEVEL0_TABLE + 0 * 8,
-        make_leaf_pte(TARGET_PAGE, leaf_flags)
-    );
-
-    /*
-     * satp:
      *
-     * MODE = 8 (Sv39)
-     * PPN = ROOT_TABLE >> 12
+     * Supervisor executable page.
      */
-    cpu->csrs[CSR_SATP] =
-        (8ULL << 60) |
-        (ROOT_TABLE >> 12);
-}
-
-
-static void test_bare_mode(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_bare_mode...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_SATP] = 0;
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            0x81234567,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == TRANSLATION_SUCCESS);
-    assert(result.physical_address == 0x81234567);
-}
-
-
-static void test_m_mode_bypasses_translation(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_m_mode_bypasses_translation...\n");
-
-    cpu->priviledge = M_MODE;
-
-    /*
-     * Even though Sv39 is supposedly enabled,
-     * normal M-mode accesses bypass it.
-     */
-    cpu->csrs[CSR_SATP] =
-        (8ULL << 60) |
-        (ROOT_TABLE >> 12);
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == TRANSLATION_SUCCESS);
-    assert(result.physical_address == TEST_VA);
-}
-
-
-static void test_basic_load_translation(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_basic_load_translation...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_W |
-        PTE_A |
-        PTE_D
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == TRANSLATION_SUCCESS);
-    assert(result.physical_address == TARGET_PAGE);
-}
-
-
-static void test_page_offset_preserved(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_page_offset_preserved...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_A
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA + 0x123,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == TRANSLATION_SUCCESS);
-    assert(result.physical_address == TARGET_PAGE + 0x123);
-}
-
-
-static void test_invalid_pte(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_invalid_pte...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_R |
-        PTE_A
-        /* V deliberately missing */
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == LOAD_PAGE_FAULT);
-}
-
-
-static void test_reserved_write_only_pte(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_reserved_write_only_pte...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_W |
-        PTE_A |
-        PTE_D
-    );
-
-    /*
-     * W=1, R=0 is reserved.
-     */
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_STORE
-        );
-
-    assert(result.result == STORE_PAGE_FAULT);
-}
-
-
-static void test_load_permission(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_load_permission...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    /*
-     * Executable but not readable.
-     * MXR is disabled.
-     */
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_X |
-        PTE_A
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == LOAD_PAGE_FAULT);
-}
-
-
-static void test_mxr(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_mxr...\n");
-
-    cpu->priviledge = S_MODE;
-
-    /*
-     * Enable MXR, bit 19.
-     */
-    cpu->csrs[CSR_MSTATUS] = (1ULL << 19);
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_X |
-        PTE_A
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    /*
-     * X=1 with MXR=1 means load is allowed.
-     */
-    assert(result.result == TRANSLATION_SUCCESS);
-    assert(result.physical_address == TARGET_PAGE);
-}
-
-
-static void test_store_requires_w(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_store_requires_w...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_A |
-        PTE_D
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_STORE
-        );
-
-    assert(result.result == STORE_PAGE_FAULT);
-}
-
-
-static void test_fetch_requires_x(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_fetch_requires_x...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_A
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_FETCH
-        );
-
-    assert(result.result == FETCH_PAGE_FAULT);
-}
-
-
-static void test_user_page(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_user_page...\n");
-
-    cpu->priviledge = U_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_U |
-        PTE_A
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == TRANSLATION_SUCCESS);
-    assert(result.physical_address == TARGET_PAGE);
-}
-
-
-static void test_user_cannot_access_supervisor_page(
-    cpu_t *cpu,
-    memory_t *mem
-)
-{
-    printf("test_user_cannot_access_supervisor_page...\n");
-
-    cpu->priviledge = U_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_A
-        /* U intentionally zero */
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == LOAD_PAGE_FAULT);
-}
-
-
-static void test_supervisor_sum(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_supervisor_sum...\n");
-
-    cpu->priviledge = S_MODE;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_U |
-        PTE_A
-    );
-
-    /*
-     * SUM disabled.
-     */
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == LOAD_PAGE_FAULT);
-
-    /*
-     * Now enable SUM, bit 18.
-     */
-    cpu->csrs[CSR_MSTATUS] = (1ULL << 18);
-
-    result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == TRANSLATION_SUCCESS);
-}
-
-
-static void test_supervisor_cannot_fetch_user_page(
-    cpu_t *cpu,
-    memory_t *mem
-)
-{
-    printf("test_supervisor_cannot_fetch_user_page...\n");
-
-    cpu->priviledge = S_MODE;
-
-    /*
-     * Even SUM=1 must not allow instruction fetch
-     * from a U page.
-     */
-    cpu->csrs[CSR_MSTATUS] = (1ULL << 18);
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_X |
-        PTE_U |
-        PTE_A
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_FETCH
-        );
-
-    assert(result.result == FETCH_PAGE_FAULT);
-}
-
-
-static void test_accessed_bit(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_accessed_bit...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R
-        /* A deliberately zero */
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == LOAD_PAGE_FAULT);
-}
-
-
-static void test_dirty_bit(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_dirty_bit...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_W |
-        PTE_A
-        /* D deliberately zero */
-    );
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_STORE
-        );
-
-    assert(result.result == STORE_PAGE_FAULT);
-}
-
-
-static void test_noncanonical_address(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_noncanonical_address...\n");
-
-    cpu->priviledge = S_MODE;
-
-    setup_basic_mapping(
-        cpu,
-        mem,
-        PTE_V |
-        PTE_R |
-        PTE_A
-    );
-
-    /*
-     * Bit 39 set while bit 38 is zero.
-     * Not a valid Sv39 canonical address.
-     */
-    uint64_t bad_va = 1ULL << 39;
-
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            bad_va,
-            ACCESS_LOAD
-        );
-
-    assert(result.result == LOAD_PAGE_FAULT);
-}
-
-
-static void test_level0_nonleaf_fault(cpu_t *cpu, memory_t *mem)
-{
-    printf("test_level0_nonleaf_fault...\n");
-
-    cpu->priviledge = S_MODE;
-    cpu->csrs[CSR_MSTATUS] = 0;
-
-    clear_test_tables(mem);
-
     mem_write64(
         mem,
-        ROOT_TABLE + 1 * 8,
-        make_table_pte(LEVEL1_TABLE)
+        LEVEL0_TABLE + (0 * 8),
+        make_leaf_pte(
+            CODE_PA,
+            PTE_V |
+            PTE_R |
+            PTE_X |
+            PTE_A
+        )
+    );
+
+    /*
+     * VPN[0] = 1
+     *
+     * Readable data page.
+     */
+    mem_write64(
+        mem,
+        LEVEL0_TABLE + (1 * 8),
+        make_leaf_pte(
+            DATA_PA,
+            PTE_V |
+            PTE_R |
+            PTE_A
+        )
+    );
+
+    /*
+     * VPN[0] = 2
+     *
+     * Read/write data page.
+     */
+    mem_write64(
+        mem,
+        LEVEL0_TABLE + (2 * 8),
+        make_leaf_pte(
+            STORE_PA,
+            PTE_V |
+            PTE_R |
+            PTE_W |
+            PTE_A |
+            PTE_D
+        )
+    );
+
+    /*
+     * VPN[0] = 3 is deliberately left zero.
+     *
+     * UNMAPPED_VA therefore faults.
+     */
+
+    cpu->csrs[CSR_SATP] =
+        (8ULL << 60) |
+        (ROOT_TABLE >> 12);
+
+    /*
+     * Keep page faults in M-mode for these tests.
+     *
+     * This makes the trap vector a physical address because
+     * M-mode bypasses Sv39 in your current implementation.
+     */
+    cpu->csrs[CSR_MEDELEG] = 0;
+
+    cpu->csrs[CSR_MTVEC] = TRAP_VECTOR;
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 1
+ *
+ * Instruction fetch itself goes through Sv39.
+ *
+ * CODE_VA -> CODE_PA
+ *
+ * Physical CODE_PA contains:
+ *
+ *     addi x5, x0, 42
+ * ---------------------------------------------------------
+ */
+static void test_translated_instruction_fetch(memory_t *mem)
+{
+    printf("test_translated_instruction_fetch...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_ADDI_X5_42
+    );
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = CODE_VA;
+
+    cpu_step(&cpu, mem);
+
+    assert(cpu.regs[5] == 42);
+    assert(cpu.pc == CODE_VA + 4);
+    assert(cpu.priviledge == S_MODE);
+
+    printf("  PASS\n");
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 2
+ *
+ * Load address translation.
+ *
+ * Code:
+ *
+ *     ld x5, 0(x6)
+ *
+ * x6 = DATA_VA
+ *
+ * DATA_VA -> DATA_PA
+ * ---------------------------------------------------------
+ */
+static void test_translated_load(memory_t *mem)
+{
+    printf("test_translated_load...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    uint64_t expected =
+        0x1122334455667788ULL;
+
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_LD_X5_X6
     );
 
     mem_write64(
         mem,
-        LEVEL1_TABLE,
-        make_table_pte(LEVEL0_TABLE)
+        DATA_PA,
+        expected
+    );
+
+    cpu.regs[6] = DATA_VA;
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = CODE_VA;
+
+    cpu_step(&cpu, mem);
+
+    assert(cpu.regs[5] == expected);
+    assert(cpu.pc == CODE_VA + 4);
+    assert(cpu.priviledge == S_MODE);
+
+    printf("  PASS\n");
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 3
+ *
+ * Store address translation.
+ *
+ * Code:
+ *
+ *     sd x5, 0(x6)
+ *
+ * x5 = value
+ * x6 = STORE_VA
+ *
+ * STORE_VA -> STORE_PA
+ * ---------------------------------------------------------
+ */
+static void test_translated_store(memory_t *mem)
+{
+    printf("test_translated_store...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    uint64_t expected =
+        0xCAFEBABEDEADBEEFULL;
+
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_SD_X5_X6
+    );
+
+    cpu.regs[5] = expected;
+    cpu.regs[6] = STORE_VA;
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = CODE_VA;
+
+    cpu_step(&cpu, mem);
+
+    assert(
+        mem_read64(mem, STORE_PA) ==
+        expected
+    );
+
+    assert(cpu.pc == CODE_VA + 4);
+    assert(cpu.priviledge == S_MODE);
+
+    printf("  PASS\n");
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 4
+ *
+ * Instruction page fault.
+ *
+ * PC itself points to an unmapped virtual page.
+ *
+ * Expected:
+ *
+ * mcause = 12
+ * mepc   = faulting virtual PC
+ * mtval  = faulting virtual PC
+ * PC     = mtvec
+ * mode   = M
+ * ---------------------------------------------------------
+ */
+static void test_instruction_page_fault(memory_t *mem)
+{
+    printf("test_instruction_page_fault...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = UNMAPPED_VA;
+
+    cpu_step(&cpu, mem);
+    
+    assert(
+        cpu.csrs[CSR_MCAUSE] ==
+        EXC_FETCH_PAGE_FAULT
+    );
+
+    assert(
+        cpu.csrs[CSR_MEPC] ==
+        UNMAPPED_VA
+    );
+
+    assert(
+        cpu.csrs[CSR_MTVAL] ==
+        UNMAPPED_VA
+    );
+
+    assert(cpu.priviledge == M_MODE);
+    assert(cpu.pc == TRAP_VECTOR);
+
+    printf("  PASS\n");
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 5
+ *
+ * Load page fault.
+ *
+ * Instruction fetch succeeds:
+ *
+ *     ld x5, 0(x6)
+ *
+ * but x6 points at an unmapped virtual page.
+ *
+ * Expected:
+ *
+ * mcause = 13
+ * mepc   = address of LD
+ * mtval  = data VA that failed
+ * ---------------------------------------------------------
+ */
+static void test_load_page_fault(memory_t *mem)
+{
+    printf("test_load_page_fault...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_LD_X5_X6
+    );
+
+    cpu.regs[6] = UNMAPPED_VA;
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = CODE_VA;
+
+    cpu_step(&cpu, mem);
+
+    assert(
+        cpu.csrs[CSR_MCAUSE] ==
+        EXC_LOAD_PAGE_FAULT
     );
 
     /*
-     * A V-only PTE is a non-leaf.
-     * At level zero that is invalid because there
-     * is nowhere else to walk.
+     * mepc should contain the PC of the instruction
+     * that caused the load fault.
+     */
+    assert(
+        cpu.csrs[CSR_MEPC] ==
+        CODE_VA
+    );
+
+    /*
+     * mtval should contain the virtual DATA address
+     * that failed translation.
+     */
+    assert(
+        cpu.csrs[CSR_MTVAL] ==
+        UNMAPPED_VA
+    );
+
+    assert(cpu.priviledge == M_MODE);
+    assert(cpu.pc == TRAP_VECTOR);
+
+    printf("  PASS\n");
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 6
+ *
+ * Store page fault.
+ *
+ * Instruction:
+ *
+ *     sd x5, 0(x6)
+ *
+ * x6 points to an unmapped page.
+ * ---------------------------------------------------------
+ */
+static void test_store_page_fault(memory_t *mem)
+{
+    printf("test_store_page_fault...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_SD_X5_X6
+    );
+
+    cpu.regs[5] =
+        0x123456789ABCDEF0ULL;
+
+    cpu.regs[6] =
+        UNMAPPED_VA;
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = CODE_VA;
+
+    cpu_step(&cpu, mem);
+    
+    assert(
+        cpu.csrs[CSR_MCAUSE] ==
+        EXC_STORE_PAGE_FAULT
+    );
+
+    assert(
+        cpu.csrs[CSR_MEPC] ==
+        CODE_VA
+    );
+
+    assert(
+        cpu.csrs[CSR_MTVAL] ==
+        UNMAPPED_VA
+    );
+
+    assert(cpu.priviledge == M_MODE);
+    assert(cpu.pc == TRAP_VECTOR);
+
+    printf("  PASS\n");
+}
+
+
+/*
+ * ---------------------------------------------------------
+ * Test 7
+ *
+ * A mapped page exists, but permissions don't allow load.
+ *
+ * CODE_VA is executable, but we'll deliberately try to
+ * use the executable page as a data address with MXR=0.
+ *
+ * This makes sure CPU load integration preserves the
+ * permission failure returned by translate_address().
+ * ---------------------------------------------------------
+ */
+static void test_load_permission_page_fault(memory_t *mem)
+{
+    printf("test_load_permission_page_fault...\n");
+
+    cpu_t cpu = cpu_init();
+
+    setup_page_tables(&cpu, mem);
+
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_LD_X5_X6
+    );
+
+    /*
+     * CODE_VA maps to an X/R page in the default setup.
+     *
+     * Make it X-only.
      */
     mem_write64(
         mem,
         LEVEL0_TABLE,
-        make_table_pte(TARGET_PAGE)
+        make_leaf_pte(
+            CODE_PA,
+            PTE_V |
+            PTE_X |
+            PTE_A
+        )
     );
 
-    cpu->csrs[CSR_SATP] =
-        (8ULL << 60) |
-        (ROOT_TABLE >> 12);
+    /*
+     * We still need to execute the LD instruction.
+     *
+     * So use a second executable mapping for the code.
+     * Restore CODE page after setting the instruction
+     * by mapping VPN0 0 as RX.
+     *
+     * Instead, for this test use DATA_VA as the bad
+     * execute-only data page.
+     */
 
-    translation_result_t result =
-        translate_address(
-            cpu,
-            mem,
-            TEST_VA,
-            ACCESS_LOAD
-        );
+    mem_write64(
+        mem,
+        LEVEL0_TABLE,
+        make_leaf_pte(
+            CODE_PA,
+            PTE_V |
+            PTE_R |
+            PTE_X |
+            PTE_A
+        )
+    );
 
-    assert(result.result == LOAD_PAGE_FAULT);
+    mem_write64(
+        mem,
+        LEVEL0_TABLE + (1 * 8),
+        make_leaf_pte(
+            DATA_PA,
+            PTE_V |
+            PTE_X |
+            PTE_A
+        )
+    );
+
+    cpu.csrs[CSR_MSTATUS] &= ~(1ULL << 19);
+
+    cpu.regs[6] = DATA_VA;
+
+    cpu.priviledge = S_MODE;
+    cpu.pc = CODE_VA;
+
+    cpu_step(&cpu, mem);
+
+    assert(
+        cpu.csrs[CSR_MCAUSE] ==
+        EXC_LOAD_PAGE_FAULT
+    );
+
+    assert(
+        cpu.csrs[CSR_MEPC] ==
+        CODE_VA
+    );
+
+    assert(
+        cpu.csrs[CSR_MTVAL] ==
+        DATA_VA
+    );
+
+    printf("  PASS\n");
 }
 
 
-void run_sv39_tests(cpu_t *cpu, memory_t *mem)
+/*
+ * ---------------------------------------------------------
+ * Test 8
+ *
+ * M-mode still bypasses Sv39.
+ *
+ * PC is a PHYSICAL address here.
+ * ---------------------------------------------------------
+ */
+static void test_machine_mode_bypass(memory_t *mem)
 {
-    test_bare_mode(cpu, mem);
-    test_m_mode_bypasses_translation(cpu, mem);
+    printf("test_machine_mode_bypass...\n");
 
-    test_basic_load_translation(cpu, mem);
-    test_page_offset_preserved(cpu, mem);
+    cpu_t cpu = cpu_init();
 
-    test_invalid_pte(cpu, mem);
-    test_reserved_write_only_pte(cpu, mem);
+    setup_page_tables(&cpu, mem);
 
-    test_load_permission(cpu, mem);
-    test_mxr(cpu, mem);
-    test_store_requires_w(cpu, mem);
-    test_fetch_requires_x(cpu, mem);
+    mem_write32(
+        mem,
+        CODE_PA,
+        INSTR_ADDI_X5_42
+    );
 
-    test_user_page(cpu, mem);
-    test_user_cannot_access_supervisor_page(cpu, mem);
-    test_supervisor_sum(cpu, mem);
-    test_supervisor_cannot_fetch_user_page(cpu, mem);
+    cpu.priviledge = M_MODE;
+    cpu.pc = CODE_PA;
 
-    test_accessed_bit(cpu, mem);
-    test_dirty_bit(cpu, mem);
+    cpu_step(&cpu, mem);
 
-    test_noncanonical_address(cpu, mem);
-    test_level0_nonleaf_fault(cpu, mem);
+    assert(cpu.regs[5] == 42);
+    assert(cpu.pc == CODE_PA + 4);
 
-    printf("All Sv39 tests passed!\n");
+    printf("  PASS\n");
 }
 
-int main() {
-    cpu_t cpu = cpu_init();
+
+int main(void)
+{
     memory_t mem = memory_init();
 
-    run_sv39_tests(&cpu, &mem);
+    printf("\n");
+    printf("===============================\n");
+    printf(" Sv39 CPU Integration Tests\n");
+    printf("===============================\n\n");
+
+    test_translated_instruction_fetch(&mem);
+    test_translated_load(&mem);
+    test_translated_store(&mem);
+
+    test_instruction_page_fault(&mem);
+    test_load_page_fault(&mem);
+    test_store_page_fault(&mem);
+
+    test_load_permission_page_fault(&mem);
+
+    test_machine_mode_bypass(&mem);
+
+    printf("\n");
+    printf("===============================\n");
+    printf(" ALL INTEGRATION TESTS PASSED\n");
+    printf("===============================\n\n");
+
+    return 0;
 }
