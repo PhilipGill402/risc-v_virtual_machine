@@ -88,3 +88,15 @@ jtype_t decodeJ(uint32_t instruction) {
     };
 }
 
+atype_t decodeA(uint32_t instruction) {
+    return (atype_t){
+        .rd = (uint8_t)(instruction >> 7) & 0x1F,
+        .funct3 = (uint8_t)(instruction >> 12) & 0x07,
+        .rs1 = (uint8_t)(instruction >> 15) & 0x1F,
+        .rs2 = (uint8_t)(instruction >> 20) & 0x1F,
+        .rl = (uint8_t)(instruction >> 25) & 0x01,
+        .aq = (uint8_t)(instruction >> 26) & 0x01,
+        .funct5 = (uint8_t)(instruction >> 27) & 0x1F,
+    };
+}
+

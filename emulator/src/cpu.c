@@ -73,6 +73,12 @@ static void dispatch_instruction(cpu_t* cpu, memory_t* mem, uint32_t instruction
             break;
         }
 
+        case AMO: {
+            atype_t decoded = decodeA(instruction);
+            executeA(cpu, mem, decoded);
+            break;
+        }
+
         default: {
             // illegal instruction
             raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
@@ -293,4 +299,3 @@ store_result_t cpu_store64(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint64_t v
     store_result.success = 1;
     return store_result;
 }
-

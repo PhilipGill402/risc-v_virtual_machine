@@ -11,6 +11,7 @@ typedef enum Opcode {
     AUIPC      = 0x17,
     OP_IMM_32  = 0x1B,
     STORE      = 0x23,
+    AMO        = 0x2F,
     OP         = 0x33,
     LUI        = 0x37,
     OP_32      = 0x3B,
@@ -65,6 +66,16 @@ typedef struct {
     uint64_t imm;
 } jtype_t;
 
+typedef struct {
+    uint8_t rd : 5;
+    uint8_t funct3 : 3;
+    uint8_t rs1 : 5;
+    uint8_t rs2 : 5;
+    uint8_t rl : 1;
+    uint8_t aq : 1;
+    uint8_t funct5 : 5;
+} atype_t;
+
 uint64_t sign_extend(uint32_t imm, uint8_t bits);
 
 rtype_t decodeR(uint32_t instruction);
@@ -73,5 +84,6 @@ stype_t decodeS(uint32_t instruction);
 btype_t decodeB(uint32_t instruction);
 utype_t decodeU(uint32_t instruction);
 jtype_t decodeJ(uint32_t instruction);
+atype_t decodeA(uint32_t instruction);
 
 #endif
