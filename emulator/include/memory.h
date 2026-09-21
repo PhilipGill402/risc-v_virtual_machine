@@ -12,6 +12,7 @@ typedef struct memory {
 } memory_t;
 
 memory_t memory_init();
+int32_t memory_free(memory_t* mem);
 
 void mem_write8(memory_t* mem, uint64_t address, uint8_t value);
 void mem_write16(memory_t* mem, uint64_t address, uint16_t value);

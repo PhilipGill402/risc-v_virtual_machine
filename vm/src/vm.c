@@ -16,6 +16,10 @@ vm_t vm_init() {
     return vm;
 }
 
+void vm_free(vm_t* vm) {
+    memory_free(&vm->ram);
+}
+
 int32_t vm_load_bin(vm_t* vm, const char* fpath) {
     errno = 0; 
     FILE* file = fopen(fpath, "rb");

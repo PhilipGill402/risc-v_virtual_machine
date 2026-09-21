@@ -17,6 +17,15 @@ memory_t memory_init() {
     return mem;
 }
 
+int32_t memory_free(memory_t* mem) {
+    errno = 0; 
+    int32_t ret = munmap(mem->mem, MEM_SIZE);
+    if (ret != 0)
+        perror("munmap");
+
+    return ret;
+}
+
 static uint8_t valid_access(uint64_t address, size_t size) {
     if (address < MEM_BASE)
         return 0;

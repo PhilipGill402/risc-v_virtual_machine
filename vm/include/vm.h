@@ -13,6 +13,8 @@ typedef struct VM {
 } vm_t;
 
 vm_t vm_init();
+void vm_free(vm_t* vm);
+
 int32_t vm_load_bin(vm_t* vm, const char* fpath);
 
 #endif

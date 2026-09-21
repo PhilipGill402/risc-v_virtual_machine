@@ -27,4 +27,6 @@ int main() {
     printf("SPP: %d\n", (uint8_t)(cpu->csrs[CSR_MSTATUS] >> 8) & 0x1);
     printf("Priviledge: %d\n", cpu->priviledge);
     printf("PC: %llx\n", cpu->pc);
+
+    vm_free(&vm);
 }
