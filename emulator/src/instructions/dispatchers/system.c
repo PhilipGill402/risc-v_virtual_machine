@@ -22,6 +22,24 @@ static void ebreak(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     raise_exception(cpu, EXC_BREAKPOINT, 0);    
 }
 
+static void sfence_vma(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+    (void)mem;
+    // Priviledge checks
+    if (cpu->priviledge == U_MODE) {
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction);
+        return;
+    } else if (cpu->priviledge == S_MODE) {
+        uint8_t tvm = (uint8_t)(cpu->csrs[CSR_MSTATUS] >> 20) & 0x1;
+        if (tvm) {
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction);
+            return;
+        }
+    }
+
+    // No-op for now 
+    return;
+}
+
 static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     if (cpu->priviledge == U_MODE) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
@@ -220,6 +238,7 @@ void dispatch_system(cpu_t* cpu, memory_t* mem, itype_t instruction) {
             switch (instruction.imm) {
                 case 0x000: ecall(cpu, mem, instruction); break;
                 case 0x001: ebreak(cpu, mem, instruction); break;
+                case 0x009: sfence_vma(cpu, mem, instruction); break;
                 case 0x102: sret(cpu, mem, instruction); break;
                 case 0x302: mret(cpu, mem, instruction); break;
                 case 0x105: wfi(cpu, mem, instruction); break;
