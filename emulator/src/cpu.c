@@ -154,7 +154,7 @@ static fetch_result_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
     }
     
     fetch_result.success = 1;
-    fetch_result.value = mem_read32(mem, result.physical_address);
+    fetch_result.value = cpu->bus->read32(cpu->bus->ctx, result.physical_address);
     return fetch_result;
 }
 
@@ -214,7 +214,7 @@ load_result_t cpu_load8(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     }
 
     load_result.success = 1;
-    load_result.value = mem_read8(mem, result.physical_address);
+    load_result.value = cpu->bus->read8(cpu->bus->ctx, result.physical_address);
     return load_result;
 }
 
@@ -228,7 +228,7 @@ load_result_t cpu_load16(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     }
         
     load_result.success = 1;
-    load_result.value = mem_read16(mem, result.physical_address);
+    load_result.value = cpu->bus->read16(cpu->bus->ctx, result.physical_address);
     return load_result;
 }
 
@@ -242,7 +242,7 @@ load_result_t cpu_load32(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     }
 
     load_result.success = 1;
-    load_result.value = mem_read32(mem, result.physical_address);
+    load_result.value = cpu->bus->read32(cpu->bus->ctx, result.physical_address);
     return load_result;
 }
 
@@ -256,7 +256,7 @@ load_result_t cpu_load64(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     }
     
     load_result.success = 1;
-    load_result.value = mem_read64(mem, result.physical_address);
+    load_result.value = cpu->bus->read64(cpu->bus->ctx, result.physical_address);
     return load_result;
 }
 
@@ -270,7 +270,7 @@ store_result_t cpu_store8(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint8_t val
     }
     
     cpu_invalidate_reservation(cpu, result.physical_address, 1);
-    mem_write8(mem, result.physical_address, value);
+    cpu->bus->write8(cpu->bus->ctx, result.physical_address, value);
     store_result.success = 1;
     return store_result;
 }
@@ -285,7 +285,7 @@ store_result_t cpu_store16(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint16_t v
     }
 
     cpu_invalidate_reservation(cpu, result.physical_address, 2);
-    mem_write16(mem, result.physical_address, value);
+    cpu->bus->write16(cpu->bus->ctx, result.physical_address, value);
     store_result.success = 1;
     return store_result;
 }
@@ -300,7 +300,7 @@ store_result_t cpu_store32(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint32_t v
     }
 
     cpu_invalidate_reservation(cpu, result.physical_address, 4);
-    mem_write32(mem, result.physical_address, value);
+    cpu->bus->write32(cpu->bus->ctx, result.physical_address, value);
     store_result.success = 1;
     return store_result;
 }
@@ -315,7 +315,7 @@ store_result_t cpu_store64(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint64_t v
     }
 
     cpu_invalidate_reservation(cpu, result.physical_address, 8);
-    mem_write64(mem, result.physical_address, value);
+    cpu->bus->write64(cpu->bus->ctx, result.physical_address, value);
     store_result.success = 1;
     return store_result;
 }

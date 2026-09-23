@@ -1,0 +1,13 @@
+#ifndef VM_INCLUDE_MMIO_H_
+#define VM_INCLUDE_MMIO_H_
+
+#define UART_BASE   0x10000000ULL
+#define UART_SIZE   0x100ULL
+
+#define TIMER_BASE  0x02000000ULL
+#define TIMER_SIZE  0x10000ULL
+
+#define RAM_BASE    0x80000000ULL
+#define RAM_SIZE    (64ULL * 1024 * 1024)
+
+#endif

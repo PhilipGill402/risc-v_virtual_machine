@@ -2,7 +2,7 @@
 #include "trap.h"
 #include "log.h"
 
-static void fence_t(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void fence_i(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     if (instruction.rd != 0 || instruction.rs1 != 0 || instruction.imm != 0) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
         return;

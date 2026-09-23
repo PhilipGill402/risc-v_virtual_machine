@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "memory.h"
 #include "csrs/csr.h"
+#include "bus_def.h"
 
 typedef struct reservation {
     uint8_t valid;
@@ -16,6 +17,8 @@ typedef struct cpu_t {
     uint64_t csrs[4096];
     uint64_t pc;
     priviledge_t priviledge;
+
+    bus_t* bus;
     
     reservation_t reservation;
 

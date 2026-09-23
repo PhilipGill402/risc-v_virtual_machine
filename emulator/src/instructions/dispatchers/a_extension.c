@@ -18,7 +18,7 @@ static void amo_w(cpu_t* cpu, memory_t* mem, atype_t instruction) {
         return;
     }
 
-    uint32_t old = mem_read32(mem, tr.physical_address);
+    uint32_t old = cpu->bus->read32(cpu->bus->ctx, tr.physical_address);
     uint32_t new;
 
     switch (instruction.funct5) {
@@ -74,7 +74,7 @@ static void amo_w(cpu_t* cpu, memory_t* mem, atype_t instruction) {
     }
     
     cpu_invalidate_reservation(cpu, tr.physical_address, 4);
-    mem_write32(mem, tr.physical_address, new); 
+    cpu->bus->write32(cpu->bus->ctx, tr.physical_address, new); 
     cpu_write_reg(cpu, instruction.rd, sign_extend(old, 32));
 }
 
@@ -93,7 +93,7 @@ static void amo_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
         return;
     }
 
-    uint64_t old = mem_read64(mem, tr.physical_address);
+    uint64_t old = cpu->bus->read64(cpu->bus->ctx, tr.physical_address);
     uint64_t new;
 
     switch (instruction.funct5) {
@@ -149,7 +149,7 @@ static void amo_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
     }
 
     cpu_invalidate_reservation(cpu, tr.physical_address, 8);
-    mem_write64(mem, tr.physical_address, new);
+    cpu->bus->write64(cpu->bus->ctx, tr.physical_address, new);
     cpu_write_reg(cpu, instruction.rd, old);
 }
 
@@ -172,7 +172,7 @@ static void lr_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
         return;
     }
 
-    uint64_t value = mem_read64(mem, tr.physical_address);
+    uint64_t value = cpu->bus->read64(cpu->bus->ctx, tr.physical_address);
     cpu_write_reg(cpu, instruction.rd, value);
 
     cpu->reservation.valid = 1;
@@ -199,7 +199,7 @@ static void lr_w(cpu_t* cpu, memory_t* mem, atype_t instruction) {
         return;
     }
 
-    uint32_t value = mem_read32(mem, tr.physical_address);
+    uint32_t value = cpu->bus->read32(cpu->bus->ctx, tr.physical_address);
     cpu_write_reg(cpu, instruction.rd, sign_extend(value, 32));
 
     cpu->reservation.valid = 1;
@@ -223,7 +223,7 @@ static void sc_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
     }
 
     if (cpu->reservation.phys_addr == tr.physical_address && cpu->reservation.valid && cpu->reservation.size == 8) {
-        mem_write64(mem, tr.physical_address, value);
+        cpu->bus->write64(cpu->bus->ctx, tr.physical_address, value);
         cpu_write_reg(cpu, instruction.rd, 0);
     } else {
         cpu_write_reg(cpu, instruction.rd, 1);
@@ -248,7 +248,7 @@ static void sc_w(cpu_t* cpu, memory_t* mem, atype_t instruction) {
     }
 
     if (cpu->reservation.phys_addr == tr.physical_address && cpu->reservation.valid && cpu->reservation.size == 4) {
-        mem_write32(mem, tr.physical_address, value);
+        cpu->bus->write32(cpu->bus->ctx, tr.physical_address, value);
         cpu_write_reg(cpu, instruction.rd, 0);
     } else {
         cpu_write_reg(cpu, instruction.rd, 1);

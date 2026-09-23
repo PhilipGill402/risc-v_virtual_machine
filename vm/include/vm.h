@@ -8,12 +8,15 @@
 
 typedef struct VM {
     cpu_t cpu;
+    bus_t bus;
     memory_t ram;
     timer_t timer;
 } vm_t;
 
 vm_t vm_init();
 void vm_free(vm_t* vm);
+uint64_t bus_read64(vm_t* vm, uint64_t address);
+void bus_write64(vm_t* vm, uint64_t address, uint64_t value);
 
 int32_t vm_load_bin(vm_t* vm, const char* fpath);
 
