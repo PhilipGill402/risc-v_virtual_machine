@@ -1,10 +1,20 @@
 #include "instructions/dispatchers/misc_mem.h"
+#include "trap.h"
 #include "log.h"
 
-static void fence(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    log_error("FENCE not implemented\n");
+static void fence_t(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+    if (instruction.rd != 0 || instruction.rs1 != 0 || instruction.imm != 0) {
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        return;
+    }
+
+    // no-op for now 
+    return;
 }
 
 void dispatch_misc_mem(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    fence(cpu, mem, instruction);
+    switch (instruction.funct3) {
+        case 0x1: fence_i(cpu, mem, instruction); break;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+    }
 }
