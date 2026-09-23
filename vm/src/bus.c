@@ -2,6 +2,7 @@
 #include "mmio.h"
 #include "memory.h"
 #include "timer.h"
+#include "uart.h"
 #include "vm.h"
 #include "log.h"
 
@@ -15,6 +16,9 @@ uint8_t vm_bus_read8(void* ctx, uint64_t addr) {
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE))
         return mem_read8(&vm->ram, addr);
 
+    if (addr_in_range(addr, UART_BASE, UART_SIZE))
+        return uart_read8(&vm->uart, addr - UART_BASE);
+
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
 }
@@ -24,6 +28,12 @@ uint16_t vm_bus_read16(void* ctx, uint64_t addr) {
 
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE))
         return mem_read16(&vm->ram, addr);
+
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        log_error("UART 16 bit reads currently aren't supported\n");
+        return 0;
+        //return uart_read16(&vm->uart, addr - UART_BASE);
+    }
 
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
@@ -35,6 +45,12 @@ uint32_t vm_bus_read32(void* ctx, uint64_t addr) {
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE))
         return mem_read32(&vm->ram, addr);
 
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        log_error("UART 32 bit reads currently aren't supported\n");
+        return 0;
+        //return uart_read32(&vm->uart, addr - UART_BASE);
+    }
+
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
 }
@@ -44,6 +60,12 @@ uint64_t vm_bus_read64(void* ctx, uint64_t addr) {
 
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE))
         return mem_read64(&vm->ram, addr);
+    
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        log_error("UART 64 bit reads currently aren't supported\n");
+        return 0;
+        //return uart_read64(&vm->uart, addr - UART_BASE);
+    }
 
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
@@ -54,6 +76,11 @@ void vm_bus_write8(void* ctx, uint64_t addr, uint8_t value) {
 
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE)) {
         mem_write8(&vm->ram, addr, value);
+        return;
+    }
+
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        uart_write8(&vm->uart, addr - UART_BASE, value);
         return;
     }
 
@@ -69,6 +96,12 @@ void vm_bus_write16(void* ctx, uint64_t addr, uint16_t value) {
         return;
     }
 
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        log_error("UART 16 bit writes currently aren't supported\n");
+        //uart_write16(&vm->uart, addr - UART_BASE, value);
+        return;
+    }
+
     log_error("Invalid physical write at 0x%llx\n", addr);
     return;
 }
@@ -81,6 +114,12 @@ void vm_bus_write32(void* ctx, uint64_t addr, uint32_t value) {
         return;
     }
 
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        log_error("UART 32 bit writes currently aren't supported\n");
+        //uart_write32(&vm->uart, addr - UART_BASE, value);
+        return;
+    }
+
     log_error("Invalid physical write at 0x%llx\n", addr);
     return;
 }
@@ -90,6 +129,12 @@ void vm_bus_write64(void* ctx, uint64_t addr, uint64_t value) {
 
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE)) {
         mem_write64(&vm->ram, addr, value);
+        return;
+    }
+    
+    if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
+        log_error("UART 64 bit writes currently aren't supported\n"); 
+        //uart_write64(&vm->uart, addr - UART_BASE, value);
         return;
     }
 

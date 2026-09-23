@@ -12,6 +12,8 @@ void vm_init(vm_t* vm) {
     vm->cpu.bus = &vm->bus;
     
     vm->ram = memory_init();
+
+    vm->uart = uart_init();
     
     vm->bus.ctx = vm;
     vm->bus.read8 = vm_bus_read8;
