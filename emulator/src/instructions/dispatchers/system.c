@@ -26,12 +26,12 @@ static void sfence_vma(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     (void)mem;
     // Priviledge checks
     if (cpu->priviledge == U_MODE) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
         return;
     } else if (cpu->priviledge == S_MODE) {
         uint8_t tvm = (uint8_t)(cpu->csrs[CSR_MSTATUS] >> 20) & 0x1;
         if (tvm) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
             return;
         }
     }

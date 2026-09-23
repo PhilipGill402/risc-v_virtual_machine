@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "instructions/decoding.h"
+#include "instructions/atype.h"
 #include "instructions/itype.h"
 #include "instructions/jtype.h"
 #include "instructions/rtype.h"
@@ -16,6 +17,21 @@
 
 static inline uint8_t is_mret(uint32_t instruction) {
     return instruction == 0x30200073;
+}
+
+void cpu_invalidate_reservation(cpu_t* cpu, uint64_t phys_addr, uint8_t size) {
+    if (!cpu->reservation.valid)
+        return;
+
+    uint64_t store_start = phys_addr;
+    uint64_t store_end = phys_addr + size;
+
+    uint64_t resrvation_start = cpu->reservation.phys_addr;
+    uint64_t resrvation_end = resrvation_start + cpu->reservation.size;
+    
+    // the store falls inside of the reservation
+    if (store_start < resrvation_end && store_end > resrvation_start)
+        cpu->reservation.valid = 0;
 }
 
 static void increment_pc(cpu_t* cpu, uint32_t instruction) {
@@ -253,6 +269,7 @@ store_result_t cpu_store8(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint8_t val
         return store_result;
     }
     
+    cpu_invalidate_reservation(cpu, result.physical_address, 1);
     mem_write8(mem, result.physical_address, value);
     store_result.success = 1;
     return store_result;
@@ -267,6 +284,7 @@ store_result_t cpu_store16(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint16_t v
         return store_result;
     }
 
+    cpu_invalidate_reservation(cpu, result.physical_address, 2);
     mem_write16(mem, result.physical_address, value);
     store_result.success = 1;
     return store_result;
@@ -281,6 +299,7 @@ store_result_t cpu_store32(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint32_t v
         return store_result;
     }
 
+    cpu_invalidate_reservation(cpu, result.physical_address, 4);
     mem_write32(mem, result.physical_address, value);
     store_result.success = 1;
     return store_result;
@@ -295,6 +314,7 @@ store_result_t cpu_store64(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint64_t v
         return store_result;
     }
 
+    cpu_invalidate_reservation(cpu, result.physical_address, 8);
     mem_write64(mem, result.physical_address, value);
     store_result.success = 1;
     return store_result;

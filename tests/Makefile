@@ -8,7 +8,7 @@ OBJ_DIR = ../build/test
 
 TARGET = ../test_vm
 
-TEST_SRC = test_paging.c
+TEST_SRC = test_a_extension.c
 TEST_OBJ = $(OBJ_DIR)/test.o
 
 EMULATOR_DIR = ../emulator
