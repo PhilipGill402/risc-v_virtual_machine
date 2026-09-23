@@ -6,25 +6,22 @@
 
 
 
-vm_t vm_init() {
-    vm_t vm = { 0 };
-    vm.cpu = cpu_init();
-    vm.ram = memory_init();
+void vm_init(vm_t* vm) {
+    vm->cpu = cpu_init();
+    cpu_reset(&vm->cpu);
+    vm->cpu.bus = &vm->bus;
     
-    vm.bus.ctx = &vm;
-    vm.bus.read8 = vm_bus_read8;
-    vm.bus.read16 = vm_bus_read16;
-    vm.bus.read32 = vm_bus_read32;
-    vm.bus.read64 = vm_bus_read64;
-
-    vm.bus.write8= vm_bus_write8;
-    vm.bus.write16 = vm_bus_write16;
-    vm.bus.write32 = vm_bus_write32;
-    vm.bus.write64 = vm_bus_write64;
-
-    cpu_reset(&vm.cpu);
+    vm->ram = memory_init();
     
-    return vm;
+    vm->bus.ctx = vm;
+    vm->bus.read8 = vm_bus_read8;
+    vm->bus.read16 = vm_bus_read16;
+    vm->bus.read32 = vm_bus_read32;
+    vm->bus.read64 = vm_bus_read64;
+    vm->bus.write8 = vm_bus_write8;
+    vm->bus.write16 = vm_bus_write16;
+    vm->bus.write32 = vm_bus_write32;
+    vm->bus.write64 = vm_bus_write64;
 }
 
 void vm_free(vm_t* vm) {
