@@ -19,6 +19,6 @@ void vm_init(vm_t* vm);
 void vm_free(vm_t* vm);
 void vm_tick(vm_t* vm);
 
-int32_t vm_load_bin(vm_t* vm, const char* fpath);
+int32_t vm_load_bin(vm_t* vm, const char* fpath, uint64_t addr);
 
 #endif

@@ -3,11 +3,14 @@
 
 #include <stdint.h>
 
-#define IRQ_TIMER 7
-#define TIMER_MTIMECMP 0x4000
-#define TIMER_MTIME    0xBFF8
+#define IRQ_TIMER       7
+#define IRQ_SOFTWARE    3
+#define TIMER_MSIP      0x0000
+#define TIMER_MTIMECMP  0x4000
+#define TIMER_MTIME     0xBFF8
 
 typedef struct timer {
+    uint32_t msip; 
     uint64_t mtime;
     uint64_t mtimecmp;
 } timer_t;

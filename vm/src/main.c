@@ -3,9 +3,6 @@
 #include "csrs/csr.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <assert.h>
-
 #include "mmio.h"
 
 int main() {
@@ -14,26 +11,25 @@ int main() {
 
     csr_load(&vm.cpu);
     
-    int32_t ret = vm_load_bin(&vm, "tests/program.bin");
+    int32_t ret = vm_load_bin(&vm, "vm/fw_jump.elf", RAM_BASE);
     if (ret)
         exit(ret);
+    
+    ret = vm_load_bin(&vm, "vm/vm.dtb", RAM_BASE + 0x02000000);
+    if (ret)
+        exit(ret);
+    
+    vm.cpu.pc = 0x80000000;
 
-    vm.timer.mtime = 10;
-    vm.timer.mtimecmp = 5;
+    vm.cpu.regs[10] = 0;          // a0 = hart ID
+    vm.cpu.regs[11] = 0x82000000; // a1 = DTB address
+                                  
+    vm.cpu.priviledge = M_MODE;
 
-    // Make sure MTIP starts clear
-    cpu_set_interrupt_pending(&vm.cpu, IRQ_TIMER, 0);
-
-    vm_tick(&vm);
-
-    assert(vm.timer.mtime == 11);
-
-    // Check mip.MTIP
-    uint64_t mip = vm.cpu.csrs[CSR_MIP];
-
-    assert(mip & (1ULL << IRQ_TIMER));
-
-    printf("test_timer_sets_mtip passed\n");
-
+    while (1) {
+        cpu_step(&vm.cpu, &vm.ram);
+        vm_tick(&vm);
+    }
+    
     vm_free(&vm);
 }

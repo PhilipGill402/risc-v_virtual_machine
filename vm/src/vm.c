@@ -30,7 +30,7 @@ void vm_free(vm_t* vm) {
     memory_free(&vm->ram);
 }
 
-int32_t vm_load_bin(vm_t* vm, const char* fpath) {
+int32_t vm_load_bin(vm_t* vm, const char* fpath, uint64_t addr) {
     errno = 0; 
     FILE* file = fopen(fpath, "rb");
     if (!file) {
@@ -44,7 +44,8 @@ int32_t vm_load_bin(vm_t* vm, const char* fpath) {
     
     do {
         bytes_read = fread(buffer, 1, 256, file);
-        memcpy(vm->ram.mem + offset, buffer, bytes_read);
+        void* dst = vm->ram.mem + (addr - MEM_BASE) + offset;
+        memcpy(dst, buffer, bytes_read);
         offset += bytes_read;
     } while (bytes_read > 0);
 
@@ -55,6 +56,7 @@ int32_t vm_load_bin(vm_t* vm, const char* fpath) {
 
 void vm_tick(vm_t* vm) {
     timer_tick(&vm->timer);
+    cpu_set_interrupt_pending(&vm->cpu, IRQ_SOFTWARE, vm->timer.msip & 0x1);
     cpu_set_interrupt_pending(&vm->cpu, IRQ_TIMER, vm->timer.mtime >= vm->timer.mtimecmp);
 }
 
