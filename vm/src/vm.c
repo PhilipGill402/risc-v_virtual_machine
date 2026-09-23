@@ -4,8 +4,6 @@
 #include <string.h>
 #include <errno.h>
 
-
-
 void vm_init(vm_t* vm) {
     vm->cpu = cpu_init();
     cpu_reset(&vm->cpu);
@@ -14,6 +12,8 @@ void vm_init(vm_t* vm) {
     vm->ram = memory_init();
 
     vm->uart = uart_init();
+
+    timer_reset(&vm->timer);
     
     vm->bus.ctx = vm;
     vm->bus.read8 = vm_bus_read8;
@@ -51,5 +51,10 @@ int32_t vm_load_bin(vm_t* vm, const char* fpath) {
     fclose(file);
 
     return 0;
+}
+
+void vm_tick(vm_t* vm) {
+    timer_tick(&vm->timer);
+    cpu_set_interrupt_pending(&vm->cpu, IRQ_TIMER, vm->timer.mtime >= vm->timer.mtimecmp);
 }
 

@@ -19,6 +19,11 @@ uint8_t vm_bus_read8(void* ctx, uint64_t addr) {
     if (addr_in_range(addr, UART_BASE, UART_SIZE))
         return uart_read8(&vm->uart, addr - UART_BASE);
 
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        log_error("timer 8 bit write not supported\n");
+        return 0;
+    }
+
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
 }
@@ -33,6 +38,11 @@ uint16_t vm_bus_read16(void* ctx, uint64_t addr) {
         log_error("UART 16 bit reads currently aren't supported\n");
         return 0;
         //return uart_read16(&vm->uart, addr - UART_BASE);
+    }
+
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        log_error("timer 16 bit write not supported\n");
+        return 0;
     }
 
     log_error("Invalid physical read at 0x%llx\n", addr);
@@ -51,6 +61,11 @@ uint32_t vm_bus_read32(void* ctx, uint64_t addr) {
         //return uart_read32(&vm->uart, addr - UART_BASE);
     }
 
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        log_error("timer 32 bit write not supported\n");
+        return 0;
+    }
+
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
 }
@@ -67,6 +82,9 @@ uint64_t vm_bus_read64(void* ctx, uint64_t addr) {
         //return uart_read64(&vm->uart, addr - UART_BASE);
     }
 
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE))
+        return timer_read64(&vm->timer, addr - TIMER_BASE);
+
     log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
 }
@@ -81,6 +99,11 @@ void vm_bus_write8(void* ctx, uint64_t addr, uint8_t value) {
 
     if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
         uart_write8(&vm->uart, addr - UART_BASE, value);
+        return;
+    }
+
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        log_error("timer 8 bit read not supported\n");
         return;
     }
 
@@ -102,6 +125,11 @@ void vm_bus_write16(void* ctx, uint64_t addr, uint16_t value) {
         return;
     }
 
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        log_error("timer 16 bit read not supported\n");
+        return;
+    }
+
     log_error("Invalid physical write at 0x%llx\n", addr);
     return;
 }
@@ -120,6 +148,11 @@ void vm_bus_write32(void* ctx, uint64_t addr, uint32_t value) {
         return;
     }
 
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        log_error("timer 32 bit read not supported\n");
+        return;
+    }
+
     log_error("Invalid physical write at 0x%llx\n", addr);
     return;
 }
@@ -135,6 +168,11 @@ void vm_bus_write64(void* ctx, uint64_t addr, uint64_t value) {
     if (addr_in_range(addr, UART_BASE, UART_SIZE)) {
         log_error("UART 64 bit writes currently aren't supported\n"); 
         //uart_write64(&vm->uart, addr - UART_BASE, value);
+        return;
+    }
+
+    if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
+        timer_write64(&vm->timer, addr - TIMER_BASE, value);
         return;
     }
 
