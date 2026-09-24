@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "trap.h"
 
+#include <stdio.h>
 static void add(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t op1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t op2 = cpu_read_reg(cpu, instruction.rs2);
@@ -99,10 +100,10 @@ void dispatch_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
         }
         case 0x6: or_op(cpu, mem, instruction); return;
         case 0x7: and_op(cpu, mem, instruction); return;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); return;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); return;
     }
 
-    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
 }
 
 

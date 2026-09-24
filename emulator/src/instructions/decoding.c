@@ -22,6 +22,7 @@ rtype_t decodeR(uint32_t instruction) {
         .rs2 = (uint8_t)((instruction >> 20) & 0x1F),
         .funct7 = (uint8_t)((instruction >> 25) & 0x7F),
         .opcode = (uint8_t)instruction & 0x7f,
+        .raw = instruction,
     };
 }
 
@@ -33,6 +34,7 @@ itype_t decodeI(uint32_t instruction) {
         .rs1 = (uint8_t)(instruction >> 15 & 0x1F),
         .opcode = (uint8_t)instruction & 0x7f,
         .imm = sign_extend(imm, 12),
+        .raw = instruction,
     };
 }
 
@@ -47,6 +49,7 @@ stype_t decodeS(uint32_t instruction) {
         .rs2 = (uint8_t)((instruction >> 20) & 0x1F),
         .opcode = (uint8_t)instruction & 0x7f,
         .imm = sign_extend(imm, 12),
+        .raw = instruction,
     };
 }
 
@@ -63,6 +66,7 @@ btype_t decodeB(uint32_t instruction) {
         .rs2 = (uint8_t)((instruction >> 20) & 0x1F),
         .opcode = (uint8_t)instruction & 0x7f,
         .imm = sign_extend(imm, 13),
+        .raw = instruction,
     };
 }
 
@@ -71,6 +75,7 @@ utype_t decodeU(uint32_t instruction) {
         .rd = (uint8_t)((instruction >> 7) & 0x1F),
         .opcode = (uint8_t)instruction & 0x7f,
         .imm = sign_extend(instruction & 0xFFFFF000, 32),
+        .raw = instruction,
     };
 }
 
@@ -85,6 +90,7 @@ jtype_t decodeJ(uint32_t instruction) {
         .rd = (uint8_t)((instruction >> 7) & 0x1F),
         .opcode = (uint8_t)(instruction & 0x7f),
         .imm = sign_extend(imm, 21),
+        .raw = instruction,
     };
 }
 
@@ -97,6 +103,7 @@ atype_t decodeA(uint32_t instruction) {
         .rl = (uint8_t)(instruction >> 25) & 0x01,
         .aq = (uint8_t)(instruction >> 26) & 0x01,
         .funct5 = (uint8_t)(instruction >> 27) & 0x1F,
+        .raw = instruction,
     };
 }
 

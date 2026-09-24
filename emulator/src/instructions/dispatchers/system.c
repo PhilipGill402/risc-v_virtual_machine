@@ -26,12 +26,12 @@ static void sfence_vma(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     (void)mem;
     // Priviledge checks
     if (cpu->priviledge == U_MODE) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     } else if (cpu->priviledge == S_MODE) {
         uint8_t tvm = (uint8_t)(cpu->csrs[CSR_MSTATUS] >> 20) & 0x1;
         if (tvm) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -42,7 +42,7 @@ static void sfence_vma(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 
 static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     if (cpu->priviledge == U_MODE) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -64,7 +64,7 @@ static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 
 static void mret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     if (cpu->priviledge != M_MODE) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -99,14 +99,14 @@ static void csrrw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         status = csr_read(cpu, addr, &old);
 
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
     
     status = csr_write(cpu, addr, new);
 
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -119,7 +119,7 @@ static void csrrs(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -129,7 +129,7 @@ static void csrrs(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         
         status = csr_write(cpu, addr, new);
         if (status != CSR_OK) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -143,7 +143,7 @@ static void csrrc(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -153,7 +153,7 @@ static void csrrc(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         
         status = csr_write(cpu, addr, new);
         if (status != CSR_OK) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -168,7 +168,7 @@ static void csrrwi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     if (instruction.rd != 0) {
         csr_status_t status = csr_read(cpu, addr, &old);
         if (status != CSR_OK) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -176,7 +176,7 @@ static void csrrwi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint8_t zimm = instruction.rs1;
     csr_status_t status = csr_write(cpu, addr, zimm);
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -190,7 +190,7 @@ static void csrrsi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -200,7 +200,7 @@ static void csrrsi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         
         status = csr_write(cpu, addr, new);
         if (status != CSR_OK) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -214,7 +214,7 @@ static void csrrci(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
     if (status != CSR_OK) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -224,7 +224,7 @@ static void csrrci(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         
         status = csr_write(cpu, addr, new);
         if (status != CSR_OK) {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -242,7 +242,7 @@ void dispatch_system(cpu_t* cpu, memory_t* mem, itype_t instruction) {
                 case 0x102: sret(cpu, mem, instruction); break;
                 case 0x302: mret(cpu, mem, instruction); break;
                 case 0x105: wfi(cpu, mem, instruction); break;
-                default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+                default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             }
             break;
         }
@@ -252,6 +252,6 @@ void dispatch_system(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x5: csrrwi(cpu, mem, instruction); break;
         case 0x6: csrrsi(cpu, mem, instruction); break;
         case 0x7: csrrci(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

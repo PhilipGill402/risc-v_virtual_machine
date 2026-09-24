@@ -38,7 +38,7 @@ static void sriw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     else if ((instruction.imm >> 6) == 0b000000)
         srliw(cpu, mem, instruction);
     else
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
 }
 
 void dispatch_op_imm_32(cpu_t* cpu, memory_t* mem, itype_t instruction) {
@@ -46,6 +46,6 @@ void dispatch_op_imm_32(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x0: addiw(cpu, mem, instruction); break;
         case 0x1: slliw(cpu, mem, instruction); break;
         case 0x5: sriw(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

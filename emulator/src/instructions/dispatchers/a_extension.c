@@ -68,7 +68,7 @@ static void amo_w(cpu_t* cpu, memory_t* mem, atype_t instruction) {
         }
 
         default: {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -143,7 +143,7 @@ static void amo_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
         }
 
         default: {
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             return;
         }
     }
@@ -155,7 +155,7 @@ static void amo_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
 
 static void lr_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
     if (instruction.rs2 != 0) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -182,7 +182,7 @@ static void lr_d(cpu_t* cpu, memory_t* mem, atype_t instruction) {
 
 static void lr_w(cpu_t* cpu, memory_t* mem, atype_t instruction) {
     if (instruction.rs2 != 0) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 
@@ -273,7 +273,7 @@ void dispatch_a_extension(cpu_t* cpu, memory_t* mem, atype_t instruction) {
             else if (instruction.funct3 == 0x3)
                 amo_d(cpu, mem, instruction);
             else
-                raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+                raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             break;
         }
 
@@ -283,7 +283,7 @@ void dispatch_a_extension(cpu_t* cpu, memory_t* mem, atype_t instruction) {
             else if (instruction.funct3 == 0x3)
                 lr_d(cpu, mem, instruction);
             else
-                raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+                raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             break;
         }
 
@@ -293,10 +293,10 @@ void dispatch_a_extension(cpu_t* cpu, memory_t* mem, atype_t instruction) {
             else if (instruction.funct3 == 0x3)
                 sc_d(cpu, mem, instruction);
             else
-                raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+                raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             break;
         }
 
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

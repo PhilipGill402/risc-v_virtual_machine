@@ -97,7 +97,7 @@ static void dispatch_instruction(cpu_t* cpu, memory_t* mem, uint32_t instruction
 
         default: {
             // illegal instruction
-            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+            raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction);
         }
     }
 }

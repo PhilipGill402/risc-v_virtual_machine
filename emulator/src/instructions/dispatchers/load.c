@@ -74,6 +74,6 @@ void dispatch_load(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x4: lbu(cpu, mem, instruction); break;
         case 0x5: lhu(cpu, mem, instruction); break;
         case 0x6: lwu(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

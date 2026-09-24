@@ -36,6 +36,6 @@ void dispatch_store(cpu_t* cpu, memory_t* mem, stype_t instruction) {
         case 0x1: sh(cpu, mem, instruction); break;
         case 0x2: sw(cpu, mem, instruction); break;
         case 0x3: sd(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

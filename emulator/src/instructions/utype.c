@@ -10,6 +10,6 @@ void executeU(cpu_t* cpu, memory_t* mem, utype_t instruction) {
     switch (opcode) {
         case LUI: dispatch_lui(cpu, mem, instruction); break;
         case AUIPC: dispatch_auipc(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); break;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); break;
     }
 }

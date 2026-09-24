@@ -11,7 +11,7 @@ int main() {
 
     csr_load(&vm.cpu);
     
-    int32_t ret = vm_load_bin(&vm, "vm/fw_jump.elf", RAM_BASE);
+    int32_t ret = vm_load_bin(&vm, "vm/fw_jump.bin", RAM_BASE);
     if (ret)
         exit(ret);
     
@@ -27,6 +27,7 @@ int main() {
     vm.cpu.priviledge = M_MODE;
 
     while (1) {
+        //printf("instruction = 0x%08x\n", mem_read32(&vm.ram, vm.cpu.pc));
         cpu_step(&vm.cpu, &vm.ram);
         vm_tick(&vm);
     }

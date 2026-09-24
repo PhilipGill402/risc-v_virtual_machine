@@ -14,7 +14,7 @@ static void jal(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
 
 void dispatch_jal(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
     if ((opcode_t)instruction.opcode != JAL) {
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
     }
 

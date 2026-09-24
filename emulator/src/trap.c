@@ -42,6 +42,7 @@ static void enter_s_trap(cpu_t* cpu) {
 
 void raise_exception(cpu_t* cpu, uint64_t cause, uint64_t tvalue) {
     log_debug("Exception raised\n");
+    log_debug("pc=0x%016llx instr=0x%08x cause: %llu privilege=%d\n", cpu->pc, tvalue, cause, cpu->priviledge);
     
     uint8_t current_priviledge = cpu->priviledge;
     uint8_t medeleg_set = (cpu->csrs[CSR_MEDELEG] & (1ULL << cause)) != 0;

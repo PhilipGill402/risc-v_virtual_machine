@@ -57,9 +57,9 @@ void dispatch_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
                 sraw(cpu, mem, instruction);
             return;
         }; 
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); return;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); return;
     }
 
-    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+    raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
 }
 

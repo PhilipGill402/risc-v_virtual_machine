@@ -20,6 +20,6 @@ void executeI(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case JALR: dispatch_jalr(cpu, mem, instruction); break;
         case SYSTEM: dispatch_system(cpu, mem, instruction); break;
         case MISC_MEM: dispatch_misc_mem(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); break;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); break;
     } 
 }

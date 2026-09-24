@@ -63,7 +63,7 @@ static void sri(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     else if ((instruction.imm >> 6) == 0b000000)
         srli(cpu, mem, instruction);
     else
-        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
 }
 
 static void ori(cpu_t* cpu, memory_t* mem, itype_t instruction) {
@@ -88,6 +88,6 @@ void dispatch_op_imm(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         case 0x5: sri(cpu, mem, instruction); break;
         case 0x6: ori(cpu, mem, instruction); break;
         case 0x7: andi(cpu, mem, instruction); break;
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0);
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

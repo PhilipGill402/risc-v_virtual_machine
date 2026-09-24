@@ -29,7 +29,7 @@ void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
             dispatch_op_32(cpu, mem, instruction);
             break;
         }
-        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, 0); break;
+        default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); break;
     } 
 }
 

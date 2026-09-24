@@ -22,12 +22,13 @@ typedef enum Opcode {
 } opcode_t;
 
 typedef struct {
-    uint8_t rd : 4;
+    uint8_t rd : 5;
     uint8_t funct3 : 3;
     uint8_t rs1 : 5;
     uint8_t rs2 : 5;
     uint8_t funct7 : 7;
     uint8_t opcode : 7;
+    uint32_t raw;
 } rtype_t;
 
 typedef struct {
@@ -36,6 +37,7 @@ typedef struct {
     uint8_t rs1 : 5;
     uint8_t opcode : 7;
     uint64_t imm;
+    uint32_t raw;
 } itype_t;
 
 typedef struct {
@@ -44,6 +46,7 @@ typedef struct {
     uint8_t rs2 : 5;
     uint8_t opcode : 7;
     uint64_t imm;
+    uint32_t raw;
 } stype_t;
 
 typedef struct {
@@ -52,18 +55,21 @@ typedef struct {
     uint8_t rs2 : 5;
     uint8_t opcode : 7;
     uint64_t imm;
+    uint32_t raw;
 } btype_t;
 
 typedef struct {
     uint8_t rd : 5;
     uint8_t opcode : 7;
     uint64_t imm;
+    uint32_t raw;
 } utype_t;
 
 typedef struct {
     uint8_t rd : 5;
     uint8_t opcode : 7;
     uint64_t imm;
+    uint32_t raw;
 } jtype_t;
 
 typedef struct {
@@ -74,6 +80,7 @@ typedef struct {
     uint8_t rl : 1;
     uint8_t aq : 1;
     uint8_t funct5 : 5;
+    uint32_t raw;
 } atype_t;
 
 uint64_t sign_extend(uint32_t imm, uint8_t bits);
