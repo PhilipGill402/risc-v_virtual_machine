@@ -17,7 +17,9 @@ typedef struct timer {
 
 void timer_reset(timer_t* timer);
 void timer_tick(timer_t* timer);
+uint32_t timer_read32(timer_t* timer, uint64_t offset);
 uint64_t timer_read64(timer_t* timer, uint64_t offset);
+void timer_write32(timer_t* timer, uint64_t offset, uint32_t value);
 void timer_write64(timer_t* timer, uint64_t offset, uint64_t value);
 
 #endif

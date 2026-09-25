@@ -23,6 +23,7 @@ void uart_reset(uart_t* uart) {
     uart->lcr = 0x00;
     uart->mcr = 0x00;
     uart->lsr = 0x60;
+    uart->scr = 0x00;
 }
 
 uint8_t uart_read8(uart_t* uart, uint64_t offset) {
@@ -45,6 +46,7 @@ uint8_t uart_read8(uart_t* uart, uint64_t offset) {
         case UART_LCR: return uart->lcr;
         case UART_MCR: return uart->mcr;
         case UART_LSR: return uart->lsr;
+        case UART_SCR: return uart->scr;
         default: log_error("ignoring attempted read to unimplemented UART register at offset 0x%llx", offset); return 0;
     }
 }
@@ -77,6 +79,7 @@ void uart_write8(uart_t* uart, uint64_t offset, uint8_t value) {
         case UART_LCR: uart->lcr = value; break;
         case UART_MCR: uart->mcr = value; break;
         case UART_LSR: break; // read only
+        case UART_SCR: uart->scr = value; break;
         default: log_error("ignoring attempted write to unimplemented UART register at offset 0x%llx", offset); break;
     }    
 }

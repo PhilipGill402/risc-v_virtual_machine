@@ -64,8 +64,7 @@ uint32_t vm_bus_read32(void* ctx, uint64_t addr) {
     }
 
     if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
-        log_error("timer 32 bit write not supported\n");
-        return 0;
+        return timer_read32(&vm->timer, addr - TIMER_BASE);
     }
 
     log_error("Invalid physical read at 0x%llx\n", addr);
@@ -151,7 +150,7 @@ void vm_bus_write32(void* ctx, uint64_t addr, uint32_t value) {
     }
 
     if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE)) {
-        log_error("timer 32 bit read not supported\n");
+        timer_write32(&vm->timer, addr - TIMER_BASE, value);
         return;
     }
 

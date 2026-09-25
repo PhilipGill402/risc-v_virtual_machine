@@ -11,6 +11,7 @@
 #define UART_LCR 0x03
 #define UART_MCR 0x04
 #define UART_LSR 0x05
+#define UART_SCR 0x07
 
 typedef struct uart {
     uint8_t dll;
@@ -22,6 +23,7 @@ typedef struct uart {
     uint8_t lcr;
     uint8_t mcr;
     uint8_t lsr;
+    uint8_t scr;
 } uart_t;
 
 uart_t uart_init();
