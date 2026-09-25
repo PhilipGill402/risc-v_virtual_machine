@@ -90,7 +90,7 @@ static void wfi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void csrrw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    uint16_t addr = (uint16_t)instruction.imm;
+    uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
     uint64_t new = cpu_read_reg(cpu, instruction.rs1);
     uint64_t old = 0;
     csr_status_t status = CSR_OK; 
@@ -114,10 +114,11 @@ static void csrrw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void csrrs(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    uint16_t addr = (uint16_t)instruction.imm;
-   
+    uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
+    
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
+    
     if (status != CSR_OK) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
@@ -138,7 +139,7 @@ static void csrrs(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void csrrc(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    uint16_t addr = (uint16_t)instruction.imm;
+    uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
    
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
@@ -162,7 +163,7 @@ static void csrrc(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void csrrwi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    uint16_t addr = (uint16_t)instruction.imm;
+    uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
     uint64_t old = 0;
 
     if (instruction.rd != 0) {
@@ -185,7 +186,7 @@ static void csrrwi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void csrrsi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    uint16_t addr = (uint16_t)instruction.imm;
+    uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
    
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);
@@ -209,7 +210,7 @@ static void csrrsi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 }
 
 static void csrrci(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    uint16_t addr = (uint16_t)instruction.imm;
+    uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
    
     uint64_t old = 0;
     csr_status_t status = csr_read(cpu, addr, &old);

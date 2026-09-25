@@ -4,7 +4,7 @@
 
 static void addi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t reg_value = cpu_read_reg(cpu, instruction.rs1);
-
+    
     cpu_write_reg(cpu, instruction.rd, reg_value + (int64_t)instruction.imm);
 }
 

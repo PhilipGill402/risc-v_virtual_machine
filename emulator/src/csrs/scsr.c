@@ -115,7 +115,7 @@ static void scsr_load_sip(cpu_t* cpu) {
 static void scsr_load_satp(cpu_t* cpu) {
     csr_descriptor_t* csr = &csr_table[CSR_SATP];
     csr->implemented = 1;
-    csr->write_mask = 0;
+    csr->write_mask = UINT64_MAX;
 }
 
 void scsr_load_table(cpu_t* cpu) {

@@ -1,6 +1,8 @@
 #include "instructions/dispatchers/jalr.h"
 #include "cpu.h"
 
+#include <stdio.h>
+
 static void jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t addr = instruction.imm + (int64_t)cpu_read_reg(cpu, instruction.rs1);
     addr &= ~1ULL; // clear lsb

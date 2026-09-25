@@ -14,6 +14,10 @@
 #define CSR_MCAUSE    0x342
 #define CSR_MTVAL     0x343
 #define CSR_MIP       0x344
+#define CSR_MVENDORID 0xF11
+#define CSR_MARCHID   0xF12
+#define CSR_MIMPID    0xF13
+#define CSR_MHARTID   0xF14
 
 #define CSR_SSTATUS   0x100
 #define CSR_SIE       0x104

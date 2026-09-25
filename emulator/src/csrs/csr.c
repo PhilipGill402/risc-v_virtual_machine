@@ -1,6 +1,7 @@
 #include "csrs/csr.h"
 #include "csrs/csr_def.h"
 #include "csrs/mcsr.h"
+#include "csrs/scsr.h"
 #include "cpu.h"
 
 #include <stdio.h>
@@ -38,7 +39,7 @@ csr_status_t csr_read(cpu_t* cpu, uint16_t address, uint64_t* value) {
         *value = csr.read(cpu);
     else
         *value = cpu->csrs[address];
-
+    
     return CSR_OK;
 }
 
@@ -68,6 +69,7 @@ csr_status_t csr_write(cpu_t* cpu, uint16_t address, uint64_t value) {
 
 void csr_load(cpu_t* cpu) {
     mcsr_load_table(cpu);
+    scsr_load_table(cpu);
 }
 
 void csr_reset(cpu_t* cpu) {

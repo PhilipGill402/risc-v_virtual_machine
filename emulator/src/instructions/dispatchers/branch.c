@@ -1,7 +1,6 @@
 #include "instructions/dispatchers/branch.h"
 #include "trap.h"
 #include "cpu.h"
-#include <stdio.h>
 
 static void beq(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);

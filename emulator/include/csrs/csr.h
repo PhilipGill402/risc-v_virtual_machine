@@ -16,7 +16,6 @@ typedef enum {
     CSR_ILLEGAL
 } csr_status_t;
 
-
 csr_status_t csr_read(cpu_t *cpu, uint16_t address, uint64_t* value);
 csr_status_t csr_write(cpu_t *cpu, uint16_t address, uint64_t value);
 void csr_load(cpu_t* cpu);

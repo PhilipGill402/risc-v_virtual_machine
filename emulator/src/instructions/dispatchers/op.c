@@ -2,7 +2,6 @@
 #include "cpu.h"
 #include "trap.h"
 
-#include <stdio.h>
 static void add(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     uint64_t op1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t op2 = cpu_read_reg(cpu, instruction.rs2);

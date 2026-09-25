@@ -20,16 +20,31 @@ EMULATOR_LIB = $(BUILD_DIR)/libriscv.a
 UTILS_DIR = ../utils
 UTILS_LIB = $(BUILD_DIR)/libutils.a
 
+RISCV_CC = riscv64-elf-gcc
+RISCV_OBJCOPY = riscv64-elf-objcopy
+
+IMAGE_SRC = image.c
+IMAGE_ELF = image.elf
+IMAGE_BIN = image.bin
+
+RISCV_CFLAGS = \
+	-march=rv64ima_zicsr_zifencei \
+	-mabi=lp64 \
+	-ffreestanding \
+	-nostdlib \
+	-nostartfiles \
+	-Wl,-T,image.ld
+
 SRC_FILES := $(shell find $(SRC_DIR) -name '*.c')
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-all: $(TARGET)
+all: $(TARGET) $(IMAGE_BIN)
 
 $(UTILS_LIB):
 	$(MAKE) -C $(UTILS_DIR)
 
-$(DTB_OUT):
-	dtc -I dts -O dtb -o $(DTB_OUT) $(DTB_SRC) 
+$(DTB_OUT): $(DTB_SRC)
+	dtc -I dts -O dtb -o $(DTB_OUT) $(DTB_SRC)
 
 $(EMULATOR_LIB): $(UTILS_LIB)
 	$(MAKE) -C $(EMULATOR_DIR)
@@ -41,8 +56,15 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(IMAGE_ELF): $(IMAGE_SRC)
+	$(RISCV_CC) $(RISCV_CFLAGS) -o $(IMAGE_ELF) $(IMAGE_SRC)
+
+$(IMAGE_BIN): $(IMAGE_ELF)
+	$(RISCV_OBJCOPY) -O binary $(IMAGE_ELF) $(IMAGE_BIN)
+
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET)
-	rm vm.dtb
+	rm -f $(DTB_OUT)
+	rm -f $(IMAGE_ELF) $(IMAGE_BIN)
 
 .PHONY: all run clean

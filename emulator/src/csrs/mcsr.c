@@ -26,10 +26,8 @@ static void mstatus_write(cpu_t* cpu, uint64_t value) {
     new_value = set_bit(new_value, 3, mie);
     new_value = set_bit(new_value, 7, mpie);
 
-    if (mpp == 3) {
-        new_value = set_bit(new_value, 11, 1);
-        new_value = set_bit(new_value, 12, 1);
-    }
+    new_value = set_bit(new_value, 11, mpp & 0x1);
+    new_value = set_bit(new_value, 12, (mpp >> 1) & 0x1);
 
     cpu->csrs[CSR_MSTATUS] = new_value;
 }
@@ -100,6 +98,30 @@ static void mcsr_load_mtval(cpu_t* cpu) {
     csr->write_mask = UINT64_MAX;
 }
 
+static void mcsr_load_mhartid(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MHARTID];
+    csr->implemented = 1;
+    csr->write_mask = 0; // read only
+}
+
+static void mcsr_load_mvendorid(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MVENDORID];
+    csr->implemented = 1;
+    csr->write_mask = 0; // read only
+}
+
+static void mcsr_load_marchid(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MARCHID];
+    csr->implemented = 1;
+    csr->write_mask = 0; // read only
+}
+
+static void mcsr_load_mimpid(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MIMPID];
+    csr->implemented = 1;
+    csr->write_mask = 0; // read only
+}
+
 void mcsr_load_table(cpu_t* cpu) {
     mcsr_load_misa(cpu);
     mcsr_load_mstatus(cpu);
@@ -112,10 +134,14 @@ void mcsr_load_table(cpu_t* cpu) {
     mcsr_load_mepc(cpu);
     mcsr_load_mcause(cpu);
     mcsr_load_mtval(cpu);
+    mcsr_load_mhartid(cpu);
+    mcsr_load_mvendorid(cpu);
+    mcsr_load_marchid(cpu);
+    mcsr_load_mimpid(cpu);
 }
 
 void mcsr_reset(cpu_t* cpu) {
-    cpu->csrs[CSR_MISA] = (2ULL << 62) | (1ULL << 8) | (1ULL << 12) | (1ULL);
+    cpu->csrs[CSR_MISA] = MISA_MXL_RV64 | MISA_A | MISA_I | MISA_M | MISA_S | MISA_U;
     cpu->csrs[CSR_MSTATUS] = 3ULL << 11; // MIE = 0, MPP = M
     cpu->csrs[CSR_MTVEC] = MEM_BASE;
     cpu->csrs[CSR_MEDELEG] = 0;
@@ -126,4 +152,8 @@ void mcsr_reset(cpu_t* cpu) {
     cpu->csrs[CSR_MEPC] = 0;
     cpu->csrs[CSR_MCAUSE] = 0;
     cpu->csrs[CSR_MTVAL] = 0;
+    cpu->csrs[CSR_MHARTID] = 0;
+    cpu->csrs[CSR_MVENDORID] = 0;
+    cpu->csrs[CSR_MARCHID] = 0;
+    cpu->csrs[CSR_MHARTID] = 0;
 }
