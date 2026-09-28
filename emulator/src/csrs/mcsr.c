@@ -59,7 +59,7 @@ static void mcsr_load_mideleg(cpu_t* cpu) {
 static void mcsr_load_mip(cpu_t* cpu) {
     csr_descriptor_t* csr = &csr_table[CSR_MIP];
     csr->implemented = 1;
-    csr->write_mask = 0;
+    csr->write_mask = (1ULL << 1) | (1ULL << 5);
 }
 
 static void mcsr_load_mie(cpu_t* cpu) {

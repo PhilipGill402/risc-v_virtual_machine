@@ -4,8 +4,6 @@
 #include "cpu.h"
 #include "trap.h"
 
-#include <stdio.h>
-
 static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     uint64_t cause = EXC_ECALL_U_MODE; 
     if (cpu->priviledge == M_MODE)

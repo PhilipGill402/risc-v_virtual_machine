@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 uint64_t sign_extend(uint32_t imm, uint8_t bits) {
-    uint8_t sign = (imm & (1 << (bits - 1))) != 0;
+    uint8_t sign = (imm & (1ULL << (bits - 1))) != 0;
     uint64_t result = 0;
 
     if (sign)

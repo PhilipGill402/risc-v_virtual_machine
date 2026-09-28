@@ -64,7 +64,7 @@ static uint64_t get_physical_address(uint64_t* pte_ppn, uint64_t* vpn, uint64_t 
 static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type, uint8_t effective_priv) {
     translation_result_t result; 
         
-    if (!check_upper_bits(virtual_address))             
+    if (!check_upper_bits(virtual_address))
         goto page_fault;
 
     uint64_t satp = cpu->csrs[CSR_SATP];
@@ -130,9 +130,16 @@ static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_add
         else if (access_type == ACCESS_FETCH && !x_bit)
             goto page_fault;
 
-        if (!a_bit || (access_type == ACCESS_STORE && !d_bit)) {
-            // Svade throws an exception here
-            goto page_fault;
+        uint64_t updated_pte = pte;
+        if (!a_bit)
+            updated_pte |= (1ULL << 6);
+
+        if (access_type == ACCESS_STORE && !d_bit)
+            updated_pte |= (1ULL << 7);
+
+        if (updated_pte != pte) {
+            mem_write64(mem, pte_addr, updated_pte);
+            pte = updated_pte;
         }
 
         result.physical_address = get_physical_address(pte_ppn, vpn, offset, i);
