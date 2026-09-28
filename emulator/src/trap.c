@@ -44,9 +44,6 @@ void raise_exception(cpu_t* cpu, uint64_t cause, uint64_t tvalue) {
     //log_debug("EXCEPTION: pc=0x%016llx instr=0x%08x cause: %llu privilege=%d\n", cpu->pc, tvalue, cause, cpu->priviledge);
     //printf("EXCEPTION pc=0x%016llx cause=%llu priv=%d medeleg=0x%016llx delegated=%d\n", cpu->pc, cause, cpu->priviledge, cpu->csrs[CSR_MEDELEG], (cpu->csrs[CSR_MEDELEG] & (1ULL << cause)) != 0);
     
-    if (cause == 9) {
-        //printf("SBI pc=0x%016llx ra=0x%016llx ext=0x%016llx fid=0x%016llx a0=0x%016llx a1=0x%016llx\n", cpu->pc, cpu->regs[1], cpu->regs[17], cpu->regs[16], cpu->regs[10], cpu->regs[11]);
-    }
     uint8_t current_priviledge = cpu->priviledge;
     uint8_t medeleg_set = (cpu->csrs[CSR_MEDELEG] & (1ULL << cause)) != 0;
 

@@ -8,6 +8,7 @@ static void jal(cpu_t* cpu, memory_t* mem, jtype_t instruction) {
     uint64_t j_addr = old_pc + offset;
 
     cpu->pc = j_addr;
+    cpu->pc_written = 1;
 
     cpu_write_reg(cpu, instruction.rd, old_pc + 4);
 }

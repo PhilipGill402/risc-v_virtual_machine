@@ -56,6 +56,7 @@ static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu->priviledge = spp;
     cpu->csrs[CSR_MSTATUS] = mstatus;
     cpu->pc = cpu->csrs[CSR_SEPC];
+    cpu->pc_written = 1;
 
     return;
 }
@@ -81,6 +82,7 @@ static void mret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu->priviledge = mpp;
     cpu->csrs[CSR_MSTATUS] = mstatus;
     cpu->pc = cpu->csrs[CSR_MEPC];
+    cpu->pc_written = 1;
 }
 
 static void wfi(cpu_t* cpu, memory_t* mem, itype_t instruction) {

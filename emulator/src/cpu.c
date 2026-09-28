@@ -15,14 +15,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static inline uint8_t is_mret(uint32_t instruction) {
-    return instruction == 0x30200073;
-}
-
-static inline uint8_t is_sret(uint32_t instruction) {
-    return instruction == 0x10200073;
-}
-
 void cpu_invalidate_reservation(cpu_t* cpu, uint64_t phys_addr, uint8_t size) {
     if (!cpu->reservation.valid)
         return;
@@ -41,7 +33,7 @@ void cpu_invalidate_reservation(cpu_t* cpu, uint64_t phys_addr, uint8_t size) {
 static void increment_pc(cpu_t* cpu, uint32_t instruction) {
     uint8_t raw_opcode = instruction & 0x7F;
     opcode_t opcode = (opcode_t)raw_opcode; 
-    if (opcode != JAL && opcode != JALR && opcode != BRANCH && !cpu->trap_taken && !is_mret(instruction) && !is_sret(instruction))
+    if (!cpu->trap_taken && !cpu->pc_written)
         cpu->pc += 4;
 }
 
@@ -225,6 +217,7 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
         cpu->csrs[CSR_MINSTRET]++;
     
     cpu_check_interrupts(cpu);
+    cpu->pc_written = 0;
 }
 
 void cpu_set_interrupt_pending(cpu_t* cpu, uint8_t cause, uint8_t pending) {

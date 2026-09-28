@@ -160,7 +160,7 @@ void vm_bus_write32(void* ctx, uint64_t addr, uint32_t value) {
 
 void vm_bus_write64(void* ctx, uint64_t addr, uint64_t value) {
     vm_t* vm = (vm_t*)ctx;
-
+    
     if (addr_in_range(addr, RAM_BASE, RAM_SIZE)) {
         mem_write64(&vm->ram, addr, value);
         return;
@@ -176,14 +176,6 @@ void vm_bus_write64(void* ctx, uint64_t addr, uint64_t value) {
         timer_write64(&vm->timer, addr - TIMER_BASE, value);
         return;
     }
-
-    printf("BAD WRITE pc=0x%016llx addr=0x%016llx\n", vm->cpu.pc, addr);
-
-    for (int i = 0; i < 32; i++) {
-        printf("x%-2d = 0x%016llx%s", i, cpu_read_reg(&vm->cpu, i), ((i + 1) % 4 == 0) ? "\n" : "  ");
-    }
-
-    exit(1);
 
     log_error("Invalid physical write at 0x%llx\n", addr);
     return;

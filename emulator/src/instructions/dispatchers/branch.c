@@ -6,60 +6,60 @@ static void beq(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 == rs2)
+    if (rs1 == rs2) {
         cpu->pc += (int64_t)instruction.imm;
-    else
-        cpu->pc += 4;
+        cpu->pc_written = 1;
+    }
 }
 
 static void bne(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 != rs2)
+    if (rs1 != rs2) {
         cpu->pc += (int64_t)instruction.imm;
-    else
-        cpu->pc += 4;
+        cpu->pc_written = 1;
+    }
 }
 
 static void blt(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
     int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 < rs2)
+    if (rs1 < rs2) {
         cpu->pc += (int64_t)instruction.imm;
-    else
-        cpu->pc += 4;
+        cpu->pc_written = 1;
+    }
 }
 
 static void bge(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
     int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 >= rs2)
+    if (rs1 >= rs2) {
         cpu->pc += (int64_t)instruction.imm;
-    else
-        cpu->pc += 4;
+        cpu->pc_written = 1;
+    }
 }
 
 static void bltu(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 < rs2)
+    if (rs1 < rs2) {
         cpu->pc += instruction.imm;
-    else
-        cpu->pc += 4;
+        cpu->pc_written = 1;
+    }
 }
 
 static void bgeu(cpu_t* cpu, memory_t* mem, btype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
-    if (rs1 >= rs2)
+    if (rs1 >= rs2) {
         cpu->pc += instruction.imm;
-    else
-        cpu->pc += 4;
+        cpu->pc_written = 1;
+    }
 }
 
 void dispatch_branch(cpu_t* cpu, memory_t* mem, btype_t instruction) {

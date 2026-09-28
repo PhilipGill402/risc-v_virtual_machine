@@ -19,7 +19,7 @@ void uart_reset(uart_t* uart) {
     uart->dlm = 0x00;
     uart->ier = 0x00;
     uart->fcr = 0xC0;
-    uart->iir = 0xC1;
+    uart->iir = 0x01;
     uart->lcr = 0x00;
     uart->mcr = 0x00;
     uart->lsr = 0x60;

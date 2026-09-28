@@ -6,6 +6,7 @@ static void jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     addr &= ~1ULL; // clear lsb
     cpu_write_reg(cpu, instruction.rd, cpu->pc + 4);
     cpu->pc = addr;
+    cpu->pc_written = 1;
 }
 
 void dispatch_jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {

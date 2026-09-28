@@ -8,7 +8,8 @@
     model = "My RISC-V Emulator";
 
     chosen {
-        stdout-path = "/uart@10000000";
+        stdout-path = "/soc/uart@10000000";
+        bootargs = "console=ttyS0,115200 earlycon";
     };
 
     memory@80000000 {
@@ -55,6 +56,8 @@
 
             clock-frequency = <3686400>;
             current-speed = <115200>;
+            reg-shift = <0>;
+            status = "okay";
         };
 
         clint@2000000 {

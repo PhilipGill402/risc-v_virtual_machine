@@ -23,6 +23,7 @@ typedef struct cpu_t {
     reservation_t reservation;
 
     uint8_t trap_taken;
+    uint8_t pc_written;
 } cpu_t;
 
 typedef struct load_result {
