@@ -85,8 +85,8 @@ uint64_t vm_bus_read64(void* ctx, uint64_t addr) {
 
     if (addr_in_range(addr, TIMER_BASE, TIMER_SIZE))
         return timer_read64(&vm->timer, addr - TIMER_BASE);
-
-    log_error("Invalid physical read at 0x%llx\n", addr);
+    
+    //log_error("Invalid physical read at 0x%llx\n", addr);
     return 0;
 }
 

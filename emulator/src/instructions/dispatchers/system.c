@@ -236,10 +236,17 @@ static void csrrci(cpu_t* cpu, memory_t* mem, itype_t instruction) {
 void dispatch_system(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     switch (instruction.funct3) {
         case 0x0: {
+            uint8_t funct7 = (instruction.raw >> 25) & 0x7F;
+            uint8_t rd = (instruction.raw >> 7) & 0x1F;
+
+            if (funct7 == 0x09 && rd == 0) {
+                sfence_vma(cpu, mem, instruction);
+                break;
+            }
+
             switch (instruction.imm) {
                 case 0x000: ecall(cpu, mem, instruction); break;
                 case 0x001: ebreak(cpu, mem, instruction); break;
-                case 0x009: sfence_vma(cpu, mem, instruction); break;
                 case 0x102: sret(cpu, mem, instruction); break;
                 case 0x302: mret(cpu, mem, instruction); break;
                 case 0x105: wfi(cpu, mem, instruction); break;

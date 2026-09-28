@@ -22,12 +22,12 @@ static uint8_t check_upper_bits(uint64_t virtual_address) {
     return 1;
 }
 
-static uint8_t check_priviledge(cpu_t* cpu, uint8_t u_bit, access_type_t access_type) {
+static uint8_t check_priviledge(cpu_t* cpu, uint8_t priviledge, uint8_t u_bit, access_type_t access_type) {
     uint8_t sum = (uint8_t)(cpu->csrs[CSR_MSTATUS] >> 18) & 0x1;
     uint8_t mxr = (uint8_t)(cpu->csrs[CSR_MSTATUS] >> 19) & 0x1;
-    if (cpu->priviledge == U_MODE && !u_bit) { // user process can't access this page
+    if (priviledge == U_MODE && !u_bit) { // user process can't access this page
         return 0; 
-    } else if (cpu->priviledge == S_MODE && u_bit) {
+    } else if (priviledge == S_MODE && u_bit) {
         // supervisor code can't execute user code 
         if (access_type == ACCESS_FETCH)
             return 0; 
@@ -61,7 +61,7 @@ static uint64_t get_physical_address(uint64_t* pte_ppn, uint64_t* vpn, uint64_t 
     return (pa_ppn2 << 30) | (pa_ppn1 << 21) | (pa_ppn0 << 12) | offset; 
 }
 
-static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type) {
+static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type, uint8_t effective_priv) {
     translation_result_t result; 
         
     if (!check_upper_bits(virtual_address))             
@@ -118,7 +118,7 @@ static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_add
         else if (i == 1 && pte_ppn[0] != 0)
             goto page_fault;
 
-        if (!check_priviledge(cpu, u_bit, access_type))
+        if (!check_priviledge(cpu, effective_priv, u_bit, access_type))
             goto page_fault;
         
         // correct access bits are not set
@@ -148,9 +148,18 @@ page_fault:
 
 translation_result_t translate_address(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type) {
     uint64_t satp = cpu->csrs[CSR_SATP];
+    uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
+
     uint8_t mode = (satp >> 60) & 0xF;
+    uint8_t effective_priv = cpu->priviledge;
+
+    uint8_t mprv = (mstatus >> 17) & 0x1;
+    uint8_t mpp = (mstatus >> 11) & 0x3;
+
+    if (cpu->priviledge == M_MODE && access_type != ACCESS_FETCH && mprv)
+        effective_priv = mpp;
     
-    if (mode == 0 || cpu->priviledge == M_MODE) {    // direct mode
+    if (mode == 0 || effective_priv == M_MODE) {    // direct mode
         translation_result_t result = {
             .physical_address = virtual_address,
             .result = TRANSLATION_SUCCESS,
@@ -158,7 +167,7 @@ translation_result_t translate_address(cpu_t* cpu, memory_t* mem, uint64_t virtu
 
         return result;
     } else if (mode == 8) { // Sv39
-        return sv39(cpu, mem, virtual_address, access_type); 
+        return sv39(cpu, mem, virtual_address, access_type, effective_priv); 
     } else {
         log_error("Unrecognized mode in SATP (%d)\n", mode);
 

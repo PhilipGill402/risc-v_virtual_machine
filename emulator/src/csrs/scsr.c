@@ -118,6 +118,12 @@ static void scsr_load_satp(cpu_t* cpu) {
     csr->write_mask = UINT64_MAX;
 }
 
+static void scsr_load_scounteren(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_SCOUNTEREN];
+    csr->implemented = 1;
+    csr->write_mask = 0xFFFFFFFFULL;
+}
+
 void scsr_load_table(cpu_t* cpu) {
     scsr_load_sstatus(cpu);
     scsr_load_stvec(cpu);
@@ -128,6 +134,7 @@ void scsr_load_table(cpu_t* cpu) {
     scsr_load_sie(cpu);
     scsr_load_sip(cpu);
     scsr_load_satp(cpu);
+    scsr_load_scounteren(cpu);
 }
 
 void scsr_reset(cpu_t* cpu) {
@@ -137,4 +144,5 @@ void scsr_reset(cpu_t* cpu) {
     cpu->csrs[CSR_SCAUSE] = 0;
     cpu->csrs[CSR_STVAL] = 0;
     cpu->csrs[CSR_SATP] = 0;
+    cpu->csrs[CSR_SCOUNTEREN] = 0;
 }

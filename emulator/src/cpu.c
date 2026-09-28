@@ -106,24 +106,46 @@ static void cpu_check_interrupts(cpu_t* cpu) {
     uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
     uint64_t mip = cpu->csrs[CSR_MIP];
     uint64_t mie = cpu->csrs[CSR_MIE];
+    uint64_t mideleg = cpu->csrs[CSR_MIDELEG];
     
-    uint8_t global_mie = (uint8_t)(mstatus >> 3) & 0x1; // are interrupts enabled?
-    
-    if (!global_mie)
-        return;
-
     uint64_t pending = mip & mie; // checks if an interrupt is pending and it is enabled
-
     if (!pending)
         return;
 
-    if (pending & (1ULL << 11)) { // machine external interrupt
-        
-    } else if (pending & (1ULL << 3)) { // machine software interrupt
-    
-    } else if (pending & (1ULL << 7)) { //machine timer interrupt
-        log_debug("Timer interrupt generated\n");
-        raise_interrupt(cpu, 0x7);
+    static const uint8_t priority[] = {
+        11, // MEI
+        3,  // MSI
+        7,  // MTI
+        9,  // SEI
+        1,  // SSI
+        5,  // STI
+    };
+
+    for (uint8_t i = 0; i < sizeof(priority); ++i) {
+        uint8_t cause = priority[i];
+
+        if (!(pending & (1ULL << cause)))
+            continue;
+
+        uint8_t delegated = (mideleg >> cause) & 0x1;
+        if (!delegated) {
+            uint8_t mie_global = (mstatus >> 3) & 1;
+            if (cpu->priviledge == M_MODE && !mie_global)
+                continue;
+
+            raise_interrupt(cpu, cause);
+            return;
+        }
+
+        uint8_t sie_global = (mstatus >> 1) & 0x1;
+        if (cpu->priviledge == M_MODE)
+            continue;
+
+        if (cpu->priviledge == S_MODE && !sie_global)
+            continue;
+
+        raise_interrupt(cpu, cause);
+        return;
     }
 }
 
@@ -183,6 +205,9 @@ uint64_t cpu_read_reg(cpu_t* cpu, uint8_t reg_num) {
 }
 
 void cpu_step(cpu_t* cpu, memory_t* mem) {
+    cpu->trap_taken = 0;
+    cpu->csrs[CSR_MCYCLE]++;
+
     fetch_result_t result = cpu_fetch(cpu, mem);
     
     if (!result.success)
@@ -191,10 +216,12 @@ void cpu_step(cpu_t* cpu, memory_t* mem) {
     uint32_t instruction = result.value;
     dispatch_instruction(cpu, mem, instruction);
     
-    cpu_check_interrupts(cpu);
-    
     increment_pc(cpu, instruction);
-    cpu->trap_taken = 0;
+    
+    if (!cpu->trap_taken)
+        cpu->csrs[CSR_MINSTRET]++;
+
+    cpu_check_interrupts(cpu);
 }
 
 void cpu_set_interrupt_pending(cpu_t* cpu, uint8_t cause, uint8_t pending) {

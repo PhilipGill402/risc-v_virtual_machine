@@ -17,25 +17,19 @@ static void mcsr_load_misa(cpu_t* cpu) {
     csr->write = misa_write;
 }
 
-static void mstatus_write(cpu_t* cpu, uint64_t value) {
-    uint8_t mie = (uint8_t)(value >> 3) & 0x1;
-    uint8_t mpie = (uint8_t)(value >> 7) & 0x1;
-    uint8_t mpp = (uint8_t)(value >> 11) & 0x3;
-
-    uint64_t new_value = cpu->csrs[CSR_MSTATUS];
-    new_value = set_bit(new_value, 3, mie);
-    new_value = set_bit(new_value, 7, mpie);
-
-    new_value = set_bit(new_value, 11, mpp & 0x1);
-    new_value = set_bit(new_value, 12, (mpp >> 1) & 0x1);
-
-    cpu->csrs[CSR_MSTATUS] = new_value;
-}
-
 static void mcsr_load_mstatus(cpu_t* cpu) {
     csr_descriptor_t* csr = &csr_table[CSR_MSTATUS];
     csr->implemented = 1;
-    csr->write = mstatus_write;
+    csr->write_mask = (1ULL << 1)  | // SIE
+                    (1ULL << 3)  | // MIE
+                    (1ULL << 5)  | // SPIE
+                    (1ULL << 7)  | // MPIE
+                    (1ULL << 8)  | // SPP
+                    (3ULL << 11) | // MPP
+                    (1ULL << 17) | // MPRV
+                    (1ULL << 18) | // SUM
+                    (1ULL << 19) | // MXR
+                    (1ULL << 20);  // TVM;
 }
 
 static void mtvec_write(cpu_t* cpu, uint64_t value) {
@@ -53,13 +47,13 @@ static void mcsr_load_mtvec(cpu_t* cpu) {
 static void mcsr_load_medeleg(cpu_t* cpu) {
     csr_descriptor_t* csr = &csr_table[CSR_MEDELEG];
     csr->implemented = 1;
-    csr->write_mask = 0; // disable writes as no other priviledge levels exist
+    csr->write_mask = UINT64_MAX;
 }
 
 static void mcsr_load_mideleg(cpu_t* cpu) {
     csr_descriptor_t* csr = &csr_table[CSR_MIDELEG];
     csr->implemented = 1;
-    csr->write_mask = 0; // disable writes as no other priviledge levels exist
+    csr->write_mask = UINT64_MAX;
 }
 
 static void mcsr_load_mip(cpu_t* cpu) {
@@ -71,7 +65,12 @@ static void mcsr_load_mip(cpu_t* cpu) {
 static void mcsr_load_mie(cpu_t* cpu) {
     csr_descriptor_t* csr = &csr_table[CSR_MIE];
     csr->implemented = 1;
-    csr->write_mask = (1ULL << 3) | (1ULL << 7) | (1ULL << 11); // only allow meie, mtie, and msie to be changed
+    csr->write_mask = (1ULL << 1) |
+                    (1ULL << 3) |
+                    (1ULL << 5) |
+                    (1ULL << 7) |
+                    (1ULL << 9) |
+                    (1ULL << 11);
 }
 
 static void mcsr_load_mscratch(cpu_t* cpu) {
@@ -122,6 +121,24 @@ static void mcsr_load_mimpid(cpu_t* cpu) {
     csr->write_mask = 0; // read only
 }
 
+static void mcsr_load_mcounteren(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MCOUNTEREN];
+    csr->implemented = 1;
+    csr->write_mask = 0x7;
+}
+
+static void mcsr_load_mcycle(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MCYCLE];
+    csr->implemented = 1;
+    csr->write_mask = UINT64_MAX;
+}
+
+static void mcsr_load_minstret(cpu_t* cpu) {
+    csr_descriptor_t* csr = &csr_table[CSR_MINSTRET];
+    csr->implemented = 1;
+    csr->write_mask = UINT64_MAX;
+}
+
 void mcsr_load_table(cpu_t* cpu) {
     mcsr_load_misa(cpu);
     mcsr_load_mstatus(cpu);
@@ -138,6 +155,9 @@ void mcsr_load_table(cpu_t* cpu) {
     mcsr_load_mvendorid(cpu);
     mcsr_load_marchid(cpu);
     mcsr_load_mimpid(cpu);
+    mcsr_load_mcounteren(cpu);
+    mcsr_load_mcycle(cpu);
+    mcsr_load_minstret(cpu);
 }
 
 void mcsr_reset(cpu_t* cpu) {
@@ -155,5 +175,8 @@ void mcsr_reset(cpu_t* cpu) {
     cpu->csrs[CSR_MHARTID] = 0;
     cpu->csrs[CSR_MVENDORID] = 0;
     cpu->csrs[CSR_MARCHID] = 0;
-    cpu->csrs[CSR_MHARTID] = 0;
+    cpu->csrs[CSR_MIMPID] = 0;
+    cpu->csrs[CSR_MCOUNTEREN] = 0;
+    cpu->csrs[CSR_MCYCLE] = 0;
+    cpu->csrs[CSR_MINSTRET] = 0;
 }
