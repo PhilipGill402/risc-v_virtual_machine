@@ -9,7 +9,7 @@
 
     chosen {
         stdout-path = "/soc/uart@10000000";
-        bootargs = "console=ttyS0,115200 earlycon";
+        bootargs = "console=ttyS0,115200 earlycon rdinit=/init";
     };
 
     memory@80000000 {
