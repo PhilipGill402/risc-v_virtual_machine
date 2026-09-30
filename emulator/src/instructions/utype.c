@@ -4,12 +4,12 @@
 #include "cpu.h"
 #include "trap.h"
 
-void executeU(cpu_t* cpu, memory_t* mem, utype_t instruction) {
+void executeU(cpu_t* cpu, utype_t instruction) {
     opcode_t opcode = (opcode_t)instruction.opcode;
     
     switch (opcode) {
-        case LUI: dispatch_lui(cpu, mem, instruction); break;
-        case AUIPC: dispatch_auipc(cpu, mem, instruction); break;
+        case LUI: dispatch_lui(cpu, instruction); break;
+        case AUIPC: dispatch_auipc(cpu, instruction); break;
         default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); break;
     }
 }

@@ -4,7 +4,7 @@
 #include "cpu.h"
 #include "trap.h"
 
-static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void ecall(cpu_t* cpu, itype_t instruction) {
     uint64_t cause = EXC_ECALL_U_MODE; 
     if (cpu->priviledge == M_MODE)
         cause = EXC_ECALL_M_MODE;
@@ -16,12 +16,11 @@ static void ecall(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     raise_exception(cpu, cause, 0);
 }
 
-static void ebreak(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void ebreak(cpu_t* cpu, itype_t instruction) {
     raise_exception(cpu, EXC_BREAKPOINT, 0);    
 }
 
-static void sfence_vma(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    (void)mem;
+static void sfence_vma(cpu_t* cpu, itype_t instruction) {
     // Priviledge checks
     if (cpu->priviledge == U_MODE) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
@@ -38,7 +37,7 @@ static void sfence_vma(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     return;
 }
 
-static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void sret(cpu_t* cpu, itype_t instruction) {
     if (cpu->priviledge == U_MODE) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
@@ -61,7 +60,7 @@ static void sret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     return;
 }
 
-static void mret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void mret(cpu_t* cpu, itype_t instruction) {
     if (cpu->priviledge != M_MODE) {
         raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
         return;
@@ -85,11 +84,11 @@ static void mret(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu->pc_written = 1;
 }
 
-static void wfi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void wfi(cpu_t* cpu, itype_t instruction) {
     return;
 }
 
-static void csrrw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void csrrw(cpu_t* cpu, itype_t instruction) {
     uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
     uint64_t new = cpu_read_reg(cpu, instruction.rs1);
     uint64_t old = 0;
@@ -113,7 +112,7 @@ static void csrrw(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, old);
 }
 
-static void csrrs(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void csrrs(cpu_t* cpu, itype_t instruction) {
     uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
     
     uint64_t old = 0;
@@ -138,7 +137,7 @@ static void csrrs(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, old);
 }
 
-static void csrrc(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void csrrc(cpu_t* cpu, itype_t instruction) {
     uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
    
     uint64_t old = 0;
@@ -162,7 +161,7 @@ static void csrrc(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, old);
 }
 
-static void csrrwi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void csrrwi(cpu_t* cpu, itype_t instruction) {
     uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
     uint64_t old = 0;
 
@@ -185,7 +184,7 @@ static void csrrwi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
         cpu_write_reg(cpu, instruction.rd, old);
 }
 
-static void csrrsi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void csrrsi(cpu_t* cpu, itype_t instruction) {
     uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
    
     uint64_t old = 0;
@@ -209,7 +208,7 @@ static void csrrsi(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, old);   
 }
 
-static void csrrci(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void csrrci(cpu_t* cpu, itype_t instruction) {
     uint16_t addr = (uint16_t)(instruction.raw >> 20) & 0xFFF;
    
     uint64_t old = 0;
@@ -233,33 +232,33 @@ static void csrrci(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, old);
 }
 
-void dispatch_system(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+void dispatch_system(cpu_t* cpu, itype_t instruction) {
     switch (instruction.funct3) {
         case 0x0: {
             uint8_t funct7 = (instruction.raw >> 25) & 0x7F;
             uint8_t rd = (instruction.raw >> 7) & 0x1F;
 
             if (funct7 == 0x09 && rd == 0) {
-                sfence_vma(cpu, mem, instruction);
+                sfence_vma(cpu, instruction);
                 break;
             }
 
             switch (instruction.imm) {
-                case 0x000: ecall(cpu, mem, instruction); break;
-                case 0x001: ebreak(cpu, mem, instruction); break;
-                case 0x102: sret(cpu, mem, instruction); break;
-                case 0x302: mret(cpu, mem, instruction); break;
-                case 0x105: wfi(cpu, mem, instruction); break;
+                case 0x000: ecall(cpu, instruction); break;
+                case 0x001: ebreak(cpu, instruction); break;
+                case 0x102: sret(cpu, instruction); break;
+                case 0x302: mret(cpu, instruction); break;
+                case 0x105: wfi(cpu, instruction); break;
                 default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
             }
             break;
         }
-        case 0x1: csrrw(cpu, mem, instruction); break;
-        case 0x2: csrrs(cpu, mem, instruction); break;
-        case 0x3: csrrc(cpu, mem, instruction); break;
-        case 0x5: csrrwi(cpu, mem, instruction); break;
-        case 0x6: csrrsi(cpu, mem, instruction); break;
-        case 0x7: csrrci(cpu, mem, instruction); break;
+        case 0x1: csrrw(cpu, instruction); break;
+        case 0x2: csrrs(cpu, instruction); break;
+        case 0x3: csrrc(cpu, instruction); break;
+        case 0x5: csrrwi(cpu, instruction); break;
+        case 0x6: csrrsi(cpu, instruction); break;
+        case 0x7: csrrci(cpu, instruction); break;
         default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
     }
 }

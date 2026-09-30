@@ -5,6 +5,6 @@
 
 typedef struct cpu_t cpu_t;
 
-void executeU(cpu_t* cpu, memory_t* mem, utype_t instruction);
+void executeU(cpu_t* cpu, utype_t instruction);
 
 #endif

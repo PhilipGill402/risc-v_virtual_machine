@@ -5,28 +5,28 @@
 #include "cpu.h"
 #include "trap.h"
 
-void executeR(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+void executeR(cpu_t* cpu, rtype_t instruction) {
     opcode_t opcode = (opcode_t)instruction.opcode;
     
     switch(opcode) {
         case OP: {
             // M Extension 
             if (instruction.funct7 == 0x01) {
-                dispatch_m_op(cpu, mem, instruction);
+                dispatch_m_op(cpu, instruction);
                 break;
             }       
 
-            dispatch_op(cpu, mem, instruction);
+            dispatch_op(cpu, instruction);
             break;
         }
         case OP_32: {
             // M Extension 
             if (instruction.funct7 == 0x01) {
-                dispatch_m_op_32(cpu, mem, instruction);
+                dispatch_m_op_32(cpu, instruction);
                 break;
             }
 
-            dispatch_op_32(cpu, mem, instruction);
+            dispatch_op_32(cpu, instruction);
             break;
         }
         default: raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw); break;

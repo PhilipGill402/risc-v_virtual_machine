@@ -37,7 +37,7 @@ static void increment_pc(cpu_t* cpu, uint32_t instruction) {
         cpu->pc += 4;
 }
 
-static void dispatch_instruction(cpu_t* cpu, memory_t* mem, uint32_t instruction) {
+static void dispatch_instruction(cpu_t* cpu, uint32_t instruction) {
     uint8_t raw_opcode = instruction & 0x7F;
     opcode_t opcode = (opcode_t)raw_opcode;
 
@@ -45,13 +45,13 @@ static void dispatch_instruction(cpu_t* cpu, memory_t* mem, uint32_t instruction
         case LUI:
         case AUIPC: {
             utype_t decoded = decodeU(instruction);
-            executeU(cpu, mem, decoded);
+            executeU(cpu, decoded);
             break;
         }
         
         case JAL: {
             jtype_t decoded = decodeJ(instruction);
-            executeJ(cpu, mem, decoded);
+            executeJ(cpu, decoded);
             break;
         }
 
@@ -62,32 +62,32 @@ static void dispatch_instruction(cpu_t* cpu, memory_t* mem, uint32_t instruction
         case MISC_MEM:
         case OP_IMM_32: {
             itype_t decoded = decodeI(instruction);
-            executeI(cpu, mem, decoded);
+            executeI(cpu, decoded);
             break;
         }
 
         case BRANCH: {
             btype_t decoded = decodeB(instruction);
-            executeB(cpu, mem, decoded);
+            executeB(cpu, decoded);
             break;
         }
 
         case STORE: {
             stype_t decoded = decodeS(instruction);
-            executeS(cpu, mem, decoded);
+            executeS(cpu, decoded);
             break;
         }
 
         case OP:
         case OP_32: {
             rtype_t decoded = decodeR(instruction);
-            executeR(cpu, mem, decoded);
+            executeR(cpu, decoded);
             break;
         }
 
         case AMO: {
             atype_t decoded = decodeA(instruction);
-            executeA(cpu, mem, decoded);
+            executeA(cpu, decoded);
             break;
         }
 
@@ -153,8 +153,8 @@ cpu_t cpu_init() {
     return cpu;
 }
 
-void cpu_reset(cpu_t* cpu) {
-    cpu->pc = MEM_BASE;
+void cpu_reset(cpu_t* cpu, uint64_t reset_addr) {
+    cpu->pc = reset_addr;
     cpu->priviledge = M_MODE;
     cpu->trap_taken = 0;
     
@@ -162,8 +162,8 @@ void cpu_reset(cpu_t* cpu) {
     csr_reset(cpu);
 }
 
-static fetch_result_t cpu_fetch(cpu_t* cpu, memory_t* mem) {
-    translation_result_t result = translate_address(cpu, mem, cpu->pc, ACCESS_FETCH);
+static fetch_result_t cpu_fetch(cpu_t* cpu) {
+    translation_result_t result = translate_address(cpu, cpu->pc, ACCESS_FETCH);
     fetch_result_t fetch_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -200,16 +200,16 @@ uint64_t cpu_read_reg(cpu_t* cpu, uint8_t reg_num) {
     return cpu->regs[reg_num];
 }
 
-void cpu_step(cpu_t* cpu, memory_t* mem) {
+void cpu_step(cpu_t* cpu) {
     cpu->trap_taken = 0;
     cpu->csrs[CSR_MCYCLE]++;
 
-    fetch_result_t result = cpu_fetch(cpu, mem);
+    fetch_result_t result = cpu_fetch(cpu);
     if (!result.success)
         return;
 
     uint32_t instruction = result.value;
-    dispatch_instruction(cpu, mem, instruction);
+    dispatch_instruction(cpu, instruction);
     
     increment_pc(cpu, instruction);
     
@@ -227,8 +227,8 @@ void cpu_set_interrupt_pending(cpu_t* cpu, uint8_t cause, uint8_t pending) {
         cpu->csrs[CSR_MIP] &= ~(1ULL << cause);
 }
 
-load_result_t cpu_load8(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+load_result_t cpu_load8(cpu_t* cpu, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_LOAD);
     load_result_t load_result = { 0 }; 
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -241,8 +241,8 @@ load_result_t cpu_load8(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     return load_result;
 }
 
-load_result_t cpu_load16(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+load_result_t cpu_load16(cpu_t* cpu, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_LOAD);
     load_result_t load_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -255,8 +255,8 @@ load_result_t cpu_load16(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     return load_result;
 }
 
-load_result_t cpu_load32(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+load_result_t cpu_load32(cpu_t* cpu, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_LOAD);
     load_result_t load_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -269,8 +269,8 @@ load_result_t cpu_load32(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     return load_result;
 }
 
-load_result_t cpu_load64(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_LOAD);
+load_result_t cpu_load64(cpu_t* cpu, uint64_t vaddr) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_LOAD);
     load_result_t load_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -283,8 +283,8 @@ load_result_t cpu_load64(cpu_t* cpu, memory_t* mem, uint64_t vaddr) {
     return load_result;
 }
 
-store_result_t cpu_store8(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint8_t value) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_STORE);
+store_result_t cpu_store8(cpu_t* cpu, uint64_t vaddr, uint8_t value) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_STORE);
     store_result_t store_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -298,8 +298,8 @@ store_result_t cpu_store8(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint8_t val
     return store_result;
 }
 
-store_result_t cpu_store16(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint16_t value) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_STORE);
+store_result_t cpu_store16(cpu_t* cpu, uint64_t vaddr, uint16_t value) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_STORE);
     store_result_t store_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -313,8 +313,8 @@ store_result_t cpu_store16(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint16_t v
     return store_result;
 }
 
-store_result_t cpu_store32(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint32_t value) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_STORE);
+store_result_t cpu_store32(cpu_t* cpu, uint64_t vaddr, uint32_t value) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_STORE);
     store_result_t store_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {
@@ -328,8 +328,8 @@ store_result_t cpu_store32(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint32_t v
     return store_result;
 }
 
-store_result_t cpu_store64(cpu_t* cpu, memory_t* mem, uint64_t vaddr, uint64_t value) {
-    translation_result_t result = translate_address(cpu, mem, vaddr, ACCESS_STORE);
+store_result_t cpu_store64(cpu_t* cpu, uint64_t vaddr, uint64_t value) {
+    translation_result_t result = translate_address(cpu, vaddr, ACCESS_STORE);
     store_result_t store_result = { 0 };
 
     if (result.result != TRANSLATION_SUCCESS) {

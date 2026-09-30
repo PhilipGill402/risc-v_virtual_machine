@@ -1,11 +1,10 @@
 #include "instructions/dispatchers/lui.h"
 #include "cpu.h"
 
-static void lui(cpu_t* cpu, memory_t* mem, utype_t instruction) {
-    (void)mem;
+static void lui(cpu_t* cpu, utype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, instruction.imm);
 }
 
-void dispatch_lui(cpu_t* cpu, memory_t* mem, utype_t instruction) {
-    lui(cpu, mem, instruction);
+void dispatch_lui(cpu_t* cpu, utype_t instruction) {
+    lui(cpu, instruction);
 }

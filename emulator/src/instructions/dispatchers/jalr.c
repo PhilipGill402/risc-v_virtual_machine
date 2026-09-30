@@ -1,7 +1,7 @@
 #include "instructions/dispatchers/jalr.h"
 #include "cpu.h"
 
-static void jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
+static void jalr(cpu_t* cpu, itype_t instruction) {
     uint64_t addr = instruction.imm + (int64_t)cpu_read_reg(cpu, instruction.rs1);
     addr &= ~1ULL; // clear lsb
     cpu_write_reg(cpu, instruction.rd, cpu->pc + 4);
@@ -9,6 +9,6 @@ static void jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
     cpu->pc_written = 1;
 }
 
-void dispatch_jalr(cpu_t* cpu, memory_t* mem, itype_t instruction) {
-    jalr(cpu, mem, instruction);
+void dispatch_jalr(cpu_t* cpu, itype_t instruction) {
+    jalr(cpu, instruction);
 }

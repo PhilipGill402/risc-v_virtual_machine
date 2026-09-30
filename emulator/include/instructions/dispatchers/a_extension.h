@@ -18,6 +18,6 @@
 
 typedef struct cpu_t cpu_t;
 
-void dispatch_a_extension(cpu_t* cpu, memory_t* mem, atype_t instruction);
+void dispatch_a_extension(cpu_t* cpu, atype_t instruction);
 
 #endif

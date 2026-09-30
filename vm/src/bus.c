@@ -90,6 +90,8 @@ uint64_t vm_bus_read64(void* ctx, uint64_t addr) {
     return 0;
 }
 
+
+
 void vm_bus_write8(void* ctx, uint64_t addr, uint8_t value) {
     vm_t* vm = (vm_t*)ctx;
 

@@ -6,7 +6,7 @@
 
 void vm_init(vm_t* vm) {
     vm->cpu = cpu_init();
-    cpu_reset(&vm->cpu);
+    cpu_reset(&vm->cpu, MEM_BASE);
     vm->cpu.bus = &vm->bus;
     
     vm->ram = memory_init();

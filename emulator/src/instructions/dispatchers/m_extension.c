@@ -2,14 +2,14 @@
 #include "cpu.h"
 #include "trap.h"
 
-static void mul(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void mul(cpu_t* cpu, rtype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
     cpu_write_reg(cpu, instruction.rd, rs1 * rs2);
 }
 
-static void mulh(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void mulh(cpu_t* cpu, rtype_t instruction) {
     int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
     int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -19,7 +19,7 @@ static void mulh(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void mulhsu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void mulhsu(cpu_t* cpu, rtype_t instruction) {
     int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
@@ -29,7 +29,7 @@ static void mulhsu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void mulhu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void mulhu(cpu_t* cpu, rtype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
@@ -39,7 +39,7 @@ static void mulhu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void div(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void div(cpu_t* cpu, rtype_t instruction) {
     int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
     int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
     
@@ -52,7 +52,7 @@ static void div(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void divu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void divu(cpu_t* cpu, rtype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
@@ -61,7 +61,7 @@ static void divu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void rem(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void rem(cpu_t* cpu, rtype_t instruction) {
     int64_t rs1 = (int64_t)cpu_read_reg(cpu, instruction.rs1);
     int64_t rs2 = (int64_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -74,7 +74,7 @@ static void rem(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void remu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void remu(cpu_t* cpu, rtype_t instruction) {
     uint64_t rs1 = cpu_read_reg(cpu, instruction.rs1);
     uint64_t rs2 = cpu_read_reg(cpu, instruction.rs2);
 
@@ -83,7 +83,7 @@ static void remu(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, result);
 }
 
-static void mulw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void mulw(cpu_t* cpu, rtype_t instruction) {
     int32_t rs1 = (int32_t)cpu_read_reg(cpu, instruction.rs1);
     int32_t rs2 = (int32_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -92,7 +92,7 @@ static void mulw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, sign_extend((int32_t)product, 32));
 }
 
-static void divw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void divw(cpu_t* cpu, rtype_t instruction) {
     int32_t rs1 = (int32_t)cpu_read_reg(cpu, instruction.rs1);
     int32_t rs2 = (int32_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -105,7 +105,7 @@ static void divw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, sign_extend((int32_t)result, 32));
 }
 
-static void divuw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void divuw(cpu_t* cpu, rtype_t instruction) {
     uint32_t rs1 = (uint32_t)cpu_read_reg(cpu, instruction.rs1);
     uint32_t rs2 = (uint32_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -114,7 +114,7 @@ static void divuw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, sign_extend(result, 32));
 }
 
-static void remw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void remw(cpu_t* cpu, rtype_t instruction) {
     int32_t rs1 = (int32_t)cpu_read_reg(cpu, instruction.rs1);
     int32_t rs2 = (int32_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -127,7 +127,7 @@ static void remw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, sign_extend((int32_t)result, 32));
 }
 
-static void remuw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+static void remuw(cpu_t* cpu, rtype_t instruction) {
     uint32_t rs1 = (uint32_t)cpu_read_reg(cpu, instruction.rs1);
     uint32_t rs2 = (uint32_t)cpu_read_reg(cpu, instruction.rs2);
 
@@ -136,28 +136,28 @@ static void remuw(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
     cpu_write_reg(cpu, instruction.rd, sign_extend(result, 32));
 }
 
-void dispatch_m_op(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+void dispatch_m_op(cpu_t* cpu, rtype_t instruction) {
     switch(instruction.funct3) {
-            case 0x0: mul(cpu, mem, instruction); return;
-            case 0x1: mulh(cpu, mem, instruction); return;
-            case 0x2: mulhsu(cpu, mem, instruction); return;
-            case 0x3: mulhu(cpu, mem, instruction); return;
-            case 0x4: div(cpu, mem, instruction); return;
-            case 0x5: divu(cpu, mem, instruction); return;
-            case 0x6: rem(cpu, mem, instruction); return;
-            case 0x7: remu(cpu, mem, instruction); return;
+            case 0x0: mul(cpu, instruction); return;
+            case 0x1: mulh(cpu, instruction); return;
+            case 0x2: mulhsu(cpu, instruction); return;
+            case 0x3: mulhu(cpu, instruction); return;
+            case 0x4: div(cpu, instruction); return;
+            case 0x5: divu(cpu, instruction); return;
+            case 0x6: rem(cpu, instruction); return;
+            case 0x7: remu(cpu, instruction); return;
     }
 
     raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);
 }
 
-void dispatch_m_op_32(cpu_t* cpu, memory_t* mem, rtype_t instruction) {
+void dispatch_m_op_32(cpu_t* cpu, rtype_t instruction) {
     switch(instruction.funct3) {
-            case 0x0: mulw(cpu, mem, instruction); return;
-            case 0x4: divw(cpu, mem, instruction); return;
-            case 0x5: divuw(cpu, mem, instruction); return;
-            case 0x6: remw(cpu, mem, instruction); return;
-            case 0x7: remuw(cpu, mem, instruction); return;
+            case 0x0: mulw(cpu, instruction); return;
+            case 0x4: divw(cpu, instruction); return;
+            case 0x5: divuw(cpu, instruction); return;
+            case 0x6: remw(cpu, instruction); return;
+            case 0x7: remuw(cpu, instruction); return;
     }
 
     raise_exception(cpu, EXC_ILLEGAL_INSTRUCTION, instruction.raw);

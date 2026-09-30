@@ -25,6 +25,6 @@ typedef enum access_type {
     ACCESS_LOAD
 } access_type_t;
 
-translation_result_t translate_address(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type);
+translation_result_t translate_address(cpu_t* cpu, uint64_t virtual_address, access_type_t access_type);
 
 #endif

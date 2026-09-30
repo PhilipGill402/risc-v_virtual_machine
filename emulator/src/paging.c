@@ -61,7 +61,7 @@ static uint64_t get_physical_address(uint64_t* pte_ppn, uint64_t* vpn, uint64_t 
     return (pa_ppn2 << 30) | (pa_ppn1 << 21) | (pa_ppn0 << 12) | offset; 
 }
 
-static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type, uint8_t effective_priv) {
+static translation_result_t sv39(cpu_t* cpu, uint64_t virtual_address, access_type_t access_type, uint8_t effective_priv) {
     translation_result_t result; 
         
     if (!check_upper_bits(virtual_address))
@@ -79,7 +79,7 @@ static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_add
 
     for (int8_t i = 2; i >= 0; --i) {
         uint64_t pte_addr = table + vpn[i] * 8;
-        uint64_t pte = mem_read64(mem, pte_addr);
+        uint64_t pte = cpu->bus->read64(cpu->bus->ctx, pte_addr);
         
         // bits 63:54 must be zero unles Svnapot or Svpbmt is implemented
         if ((pte >> 54) != 0)
@@ -138,7 +138,7 @@ static translation_result_t sv39(cpu_t* cpu, memory_t* mem, uint64_t virtual_add
             updated_pte |= (1ULL << 7);
 
         if (updated_pte != pte) {
-            mem_write64(mem, pte_addr, updated_pte);
+            cpu->bus->write64(cpu->bus->ctx, pte_addr, updated_pte);
             pte = updated_pte;
         }
 
@@ -153,7 +153,7 @@ page_fault:
     return result;
 }
 
-translation_result_t translate_address(cpu_t* cpu, memory_t* mem, uint64_t virtual_address, access_type_t access_type) {
+translation_result_t translate_address(cpu_t* cpu, uint64_t virtual_address, access_type_t access_type) {
     uint64_t satp = cpu->csrs[CSR_SATP];
     uint64_t mstatus = cpu->csrs[CSR_MSTATUS];
 
@@ -174,7 +174,7 @@ translation_result_t translate_address(cpu_t* cpu, memory_t* mem, uint64_t virtu
 
         return result;
     } else if (mode == 8) { // Sv39
-        return sv39(cpu, mem, virtual_address, access_type, effective_priv); 
+        return sv39(cpu, virtual_address, access_type, effective_priv); 
     } else {
         log_error("Unrecognized mode in SATP (%d)\n", mode);
 
