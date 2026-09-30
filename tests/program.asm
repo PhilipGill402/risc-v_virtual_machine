@@ -3,10 +3,11 @@
 
 _start:
     # assume CPU starts here in U-mode
-    ecall
+    # ecall
 
     # should execute after returning from SRET
     addi x5, x0, 42
+    ecall
 
 loop:
     jal x0, loop
