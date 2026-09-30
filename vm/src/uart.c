@@ -1,6 +1,9 @@
 #include "uart.h"
 #include "log.h"
 #include <stdio.h>
+#include <poll.h>
+#include <unistd.h>
+#include <errno.h>
 
 uart_t uart_init() {
     uart_t uart = { 0 };
@@ -8,13 +11,53 @@ uart_t uart_init() {
     return uart;
 }
 
+void uart_handle_host_input(uart_t* uart) {
+    if (uart->rx_count == UART_FIFO_SIZE)
+        return;
+
+    struct pollfd fd = {
+        .fd = STDIN_FILENO,
+        .events = POLLIN,
+        .revents = 0,
+    };
+    
+    int32_t ret = poll(&fd, 1, 0);
+    if (ret == -1) {
+        perror("poll");
+        return;
+    } else if (ret == 0) {
+        return;
+    } else if (fd.revents & POLLIN){
+        uint8_t byte = 0;
+        ssize_t ret = read(STDIN_FILENO, &byte, 1);
+        if (ret < 0) {
+            perror("read");
+            return;
+        } else if (ret == 0) {
+            return;
+        }
+
+        uart->rx_fifo[uart->rx_head] = byte;
+        uart->rx_head = (uart->rx_head + 1) % UART_FIFO_SIZE;
+        uart->rx_count++;
+    }
+}
+
 uint8_t uart_read8(uart_t* uart, uint64_t offset) {
     switch (offset) {
         case 0x00: {
-            if (uart->lcr & UART_LCR_DLAB)
+            if (uart->lcr & UART_LCR_DLAB) {
                 return uart->dll;
-            else
-                return 0; // uart->rbr
+            } else {
+                if (uart->rx_count == 0)
+                    return 0; // rx empty
+
+                uint8_t byte = uart->rx_fifo[uart->rx_tail];
+                uart->rx_tail = (uart->rx_tail + 1) % UART_FIFO_SIZE;
+                uart->rx_count--;
+
+                return byte;
+            }
         }
 
         case 0x01: {
@@ -26,8 +69,9 @@ uint8_t uart_read8(uart_t* uart, uint64_t offset) {
         
         case UART_IIR: {
             uint8_t fifo = (uart->fcr & UART_FCR_ENABLE_FIFO) ? UART_IIR_FIFO_ENABLED : 0;
-        
-            
+
+            if (uart->ier & UART_IER_RX_AVAILABLE && uart->rx_count > 0)
+                return fifo | UART_IIR_RX_AVAILABLE;
 
             if (uart->ier & UART_IER_THR_EMPTY && uart->thre_pending) {
                 uart->thre_pending = 0;
@@ -39,7 +83,15 @@ uint8_t uart_read8(uart_t* uart, uint64_t offset) {
 
         case UART_LCR: return uart->lcr;
         case UART_MCR: return uart->mcr;
-        case UART_LSR: return UART_LSR_THR_EMPTY | UART_LSR_TX_EMPTY;
+        case UART_LSR: {
+            uint8_t lsr = UART_LSR_THR_EMPTY | UART_LSR_TX_EMPTY;
+
+            if (uart->rx_count > 0)
+                lsr |= UART_LSR_DATA_READY; 
+            
+            return lsr; 
+        }
+        
         case UART_MSR: return 0x00;
         case UART_SCR: return uart->scr;
         default: log_error("ignoring attempted read to unimplemented UART register at offset 0x%llx\n", offset); return 0;
@@ -80,11 +132,17 @@ void uart_write8(uart_t* uart, uint64_t offset, uint8_t value) {
         }
 
         case UART_FCR: { 
-            if (value & UART_FCR_CLEAR_RX)
+            if (value & UART_FCR_CLEAR_RX) {
+                uart->rx_head = 0;
+                uart->rx_tail = 0;
                 uart->rx_count = 0;
+            }
             
-            if (value & UART_FCR_CLEAR_TX)
+            if (value & UART_FCR_CLEAR_TX) {
+                uart->tx_head = 0;
+                uart->tx_tail = 0;
                 uart->tx_count = 0;
+            }
             
             uart->fcr = value & ~(UART_FCR_CLEAR_RX | UART_FCR_CLEAR_TX); break;
         }

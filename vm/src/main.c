@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "mmio.h"
 #include "bus.h"
+#include "uart.h"
 
 int main() {
     vm_t vm = { 0 };
@@ -30,11 +31,18 @@ int main() {
     vm.cpu.regs[11] = 0x82200000; // a1 = DTB address
                                           
     vm.cpu.priviledge = M_MODE;
-    cpu_t* cpu = &vm.cpu;
+
+    uint32_t counter = 0;
     
     while (1) {
         cpu_step(&vm.cpu, &vm.ram);
         vm_tick(&vm);
+        
+        counter++;
+        if (counter == 1000) {
+            uart_handle_host_input(&vm.uart);
+            counter = 0;
+        }
     }
     
     vm_free(&vm);

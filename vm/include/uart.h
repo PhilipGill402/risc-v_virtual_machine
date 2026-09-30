@@ -80,7 +80,7 @@ typedef struct uart {
 } uart_t;
 
 uart_t uart_init();
-void uart_reset(uart_t* uart);
+void uart_handle_host_input(uart_t* uart);
 
 uint8_t uart_read8(uart_t* uart, uint64_t offset);
 //uint16_t uart_read16(uart_t* uart, uint64_t offset);
