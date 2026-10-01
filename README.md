@@ -1,108 +1,80 @@
 # RISC-V Virtual Machine
 
-A 64-bit RISC-V virtual machine and emulator written in C, built from scratch to explore CPU emulation, privilege modes, virtual memory, devices, interrupts, and Linux boot.
+A 64-bit RISC-V virtual machine and emulator written in C.
 
-The emulator currently boots through OpenSBI into a RISC-V Linux kernel and reaches an interactive BusyBox userspace shell.
+This project started as a low-level CPU emulator and has grown into a small virtual machine capable of booting OpenSBI, the Linux kernel, and a BusyBox userspace shell. The goal is to understand computer architecture, operating systems, virtual memory, privilege modes, traps, interrupts, and device emulation by implementing the full stack from scratch.
 
-## Features
+## Current Capabilities
 
-- RV64 instruction emulation
+The VM currently supports:
+
 - RV64I base integer instruction set
 - M extension for integer multiplication and division
 - A extension for atomic instructions
 - Zicsr CSR instructions
-- Zifencei instruction support
+- Zifencei
 - Machine, Supervisor, and User privilege modes
-- RISC-V trap and exception handling
-- CSR implementation
-- Sv39 virtual memory and page-table translation
-- OpenSBI boot support
-- Linux kernel boot support
-- CLINT timer emulation
-- Supervisor and machine timer interrupts
+- RISC-V traps and exceptions
+- CSR handling
+- Sv39 virtual memory
+- Page-table walking
+- Accessed and Dirty PTE handling
+- Machine and Supervisor timer interrupts
+- OpenSBI boot
+- Linux boot
+- Initramfs support
+- Buildroot / BusyBox userspace
 - 16550-style UART emulation
-- Device Tree based hardware description
-- Initramfs / BusyBox userspace
-- Interactive Linux shell
+- UART transmit support
+- UART receive FIFO
+- Interactive terminal input
+- Device Tree support
+- Physical bus abstraction
+- Static VM library
+- Debugger frontend
 
-## Current Guest Architecture
+The emulator currently boots to an interactive Linux shell.
 
-The virtual machine currently models a single-hart RV64 system using:
+## Architecture
 
-```text
-ISA:        rv64ima_zicsr_zifencei
-MMU:        Sv39
-RAM:        64 MiB
-RAM base:   0x80000000
-UART:       0x10000000
-CLINT:      0x02000000
-Timebase:   10 MHz
-```
+The emulator is structured around a central VM containing the CPU, physical memory, and emulated devices.
 
-The current boot chain is:
+The bus handles physical address routing to RAM and MMIO devices.
+
+Virtual accesses first pass through the CPU's address translation logic:
 
 ```text
-Host
-  |
-  v
-RISC-V Virtual Machine
-  |
-  v
-OpenSBI
-  |
-  v
-Linux Kernel
-  |
-  v
-Initramfs
-  |
-  v
-BusyBox
-  |
-  v
-Interactive Shell
+Virtual Address
+      |
+      v
+Sv39 Translation
+      |
+      v
+Physical Address
+      |
+      v
+Bus
+      |
+      +--> RAM
+      +--> UART
+      +--> Timer
 ```
 
-## Project Goals
+Page-table walks themselves perform physical bus reads and writes.
 
-This project is primarily an educational systems project intended to better understand how a CPU, firmware, operating system, and hardware devices interact.
+## Supported ISA
 
-Rather than relying on an existing CPU emulation library, the major components of the virtual machine are implemented directly, including instruction execution, privilege transitions, page-table walking, interrupts, timers, and memory-mapped devices.
-
-The project has progressed from executing individual RISC-V instructions to booting a complete Linux userspace.
-
-## Implemented CPU Functionality
-
-### Base ISA
-
-The emulator supports the RV64I base instruction set, including:
-
-- Integer arithmetic
-- Logical operations
-- Loads and stores
-- Branches
-- Jumps
-- Immediate operations
-- 32-bit RV64 word operations
-- Environment calls
-- Privileged returns
-
-### Extensions
-
-Currently supported extensions include:
+The current guest ISA is:
 
 ```text
-M        Integer multiplication and division
-A        Atomic memory operations
-Zicsr    Control and Status Register instructions
-Zifencei Instruction-fetch fence
+rv64ima_zicsr_zifencei
 ```
 
-Compressed, floating-point, and vector instructions are intentionally not required by the current guest environment.
+Floating-point, compressed, and vector extensions are not currently required by the guest environment.
 
 ## Privilege Modes
 
-The emulator supports all three privilege modes used by the current system:
+The emulator supports all three major RISC-V privilege levels:
 
 ```text
 M-mode   Machine mode
@@ -110,70 +82,60 @@ S-mode   Supervisor mode
 U-mode   User mode
 ```
 
-This includes privilege transitions during OpenSBI startup, Linux kernel entry, exceptions, interrupts, system calls, `MRET`, and `SRET`.
+This includes privilege transitions during:
+
+- OpenSBI startup
+- Linux boot
+- Exceptions
+- Interrupts
+- System calls
+- `MRET`
+- `SRET`
 
 ## Virtual Memory
 
-Linux runs using Sv39 virtual memory.
+Linux runs using Sv39 paging.
 
-The emulator performs page-table translation for guest virtual addresses and supports the page-table behavior required by Linux, including permission checks and page faults.
+The emulator implements:
 
-```text
-Virtual Address
-      |
-      v
-Sv39 Page Table Walk
-      |
-      v
-Guest Physical Address
-      |
-      v
-Emulated RAM / MMIO
-```
+- Three-level Sv39 page-table walks
+- Virtual-to-physical translation
+- Permission checks
+- Page faults
+- Accessed bit handling
+- Dirty bit handling
+- Physical PTE updates
+- Instruction, load, and store access types
 
-## Interrupts and Timers
+## Traps and Interrupts
 
-The virtual machine includes CLINT-style timer support.
+The CPU supports synchronous exceptions and asynchronous interrupts.
 
-The timer path used by Linux is approximately:
+Implemented functionality includes:
 
-```text
-Linux
-  |
-  | SBI set_timer
-  v
-OpenSBI
-  |
-  v
-mtimecmp
-  |
-  v
-Machine Timer Interrupt
-  |
-  v
-OpenSBI
-  |
-  v
-Supervisor Timer Interrupt
-  |
-  v
-Linux
-```
+- Environment calls
+- Illegal instruction traps
+- Page faults
+- Machine timer interrupts
+- Supervisor timer interrupts
+- Trap delegation
+- `mtvec`
+- `stvec`
+- `mepc`
+- `sepc`
+- `mcause`
+- `scause`
+- `medeleg`
+- `mideleg`
 
 ## UART
 
-A minimal 16550-compatible UART is implemented at:
+The VM includes a minimal 16550-compatible UART.
 
-```text
-0x10000000
-```
+The UART currently supports:
 
-The UART currently supports Linux console output and interactive terminal input.
-
-Implemented behavior includes:
-
-- THR transmit writes
-- Receive FIFO
+- Transmit Holding Register
+- Receive Buffer Register
 - Interrupt Enable Register
 - Interrupt Identification Register
 - FIFO Control Register
@@ -181,118 +143,218 @@ Implemented behavior includes:
 - Line Status Register
 - Modem Control Register
 - Scratch Register
-- DLAB behavior
-- TX-empty state
-- RX data-ready state
+- DLAB handling
+- THRE interrupt behavior
+- Receive FIFO
+- Host terminal input
+- Linux console output
 
-The host terminal is used as the guest serial console.
+The host terminal acts as the guest serial console.
 
-## Linux
+## Linux Boot
 
-The emulator is capable of booting a RISC-V Linux kernel through OpenSBI.
-
-From the shell, standard BusyBox commands and Linux interfaces such as the following can be used:
-
-## Userspace
-
-The current userspace is generated with Buildroot and uses musl and BusyBox.
-
-It is built specifically for:
+The VM boots through the following chain:
 
 ```text
-rv64ima_zicsr_zifencei
+RISC-V VM
+   |
+   v
+OpenSBI
+   |
+   v
+Linux Kernel
+   |
+   v
+Initramfs
+   |
+   v
+BusyBox
+   |
+   v
+Interactive Shell
 ```
 
-without requiring compressed or floating-point RISC-V extensions.
+A successful boot eventually reaches an interactive prompt:
 
-## Memory Map
+```text
+===============================
+ My RISC-V Linux system booted!
+===============================
 
-Current major regions include:
+/ #
+```
+
+## Guest Memory Map
+
+The current VM configuration uses a memory map similar to:
 
 | Address | Device |
 |---|---|
-| `0x02000000` | CLINT |
+| `0x02000000` | Timer / CLINT |
 | `0x10000000` | UART |
 | `0x80000000` | Guest RAM / OpenSBI |
 | `0x80200000` | Linux kernel |
 | `0x82200000` | Device Tree Blob |
 
-The exact layout may change as the emulator develops.
+The exact layout may change as the project develops.
+
+## Project Structure
+
+The project is organized so that the VM core can be built as a reusable static library.
+
+The VM core is compiled into:
+
+```text
+build/libvm.a
+```
+
+The normal VM and debugger both link against the same VM implementation.
 
 ## Building
 
-The emulator itself is written in C and is intended to be built on a Unix-like host.
+### Build the VM
 
-Linux, OpenSBI, Buildroot, and the device tree are built separately and loaded as guest images.
-
-The VM loads them into guest physical memory before beginning execution in machine mode.
-
-## Boot Configuration
-
-The VM currently starts execution approximately as follows:
-
-```text
-PC          = 0x80000000
-a0          = hart ID
-a1          = DTB address
-privilege   = Machine mode
+```sh
+make vm
 ```
 
-OpenSBI then performs the transition into the Linux kernel.
+This builds the VM executable and Device Tree Blob.
+
+Typical outputs:
+
+```text
+build/vm
+build/vm.dtb
+build/libvm.a
+```
+
+### Build the VM Library
+
+```sh
+make libvm
+```
+
+This builds:
+
+```text
+build/libvm.a
+```
+
+### Build the Debugger
+
+```sh
+make debugger
+```
+
+This builds:
+
+```text
+build/debugger
+```
+
+### Build Everything
+
+```sh
+make
+```
+
+### Clean
+
+```sh
+make clean
+```
+
+## Debugger
+
+The debugger is implemented as a separate frontend that links against the same VM library.
+
+This allows the debugger to inspect and control the same machine implementation used by the normal emulator.
+
+Debugger functionality can include:
+
+- Single-step execution
+- Register inspection
+- CSR inspection
+- Virtual memory inspection
+- Physical memory inspection
+- Instruction fetching
+- Breakpoints
+- Trap inspection
+- Address translation debugging
+
+## Design Goals
+
+The main goal of this project is educational.
+
+Instead of using an existing emulation framework, the VM implements the major components directly in order to better understand how they interact.
+
+Areas explored by the project include:
+
+- Instruction decoding
+- CPU execution
+- RISC-V privilege architecture
+- Virtual memory
+- Page tables
+- Traps
+- Interrupts
+- Memory-mapped I/O
+- Device emulation
+- Firmware
+- Linux boot
+- System calls
+- Userspace
+- Terminal I/O
+- Debugging infrastructure
 
 ## Development Status
 
-This project is under active development.
+Working:
 
-- [x] RV64 instruction execution
-- [x] Machine mode
-- [x] Supervisor mode
-- [x] User mode
+- [x] RV64I
+- [x] M extension
+- [x] A extension
+- [x] Zicsr
+- [x] Zifencei
+- [x] M-mode
+- [x] S-mode
+- [x] U-mode
 - [x] CSRs
-- [x] Exceptions and traps
-- [x] Sv39 paging
+- [x] Traps
+- [x] Interrupt delegation
+- [x] Sv39
 - [x] OpenSBI
-- [x] Linux boot
+- [x] Linux
 - [x] Timer interrupts
 - [x] UART output
 - [x] UART input
-- [x] Initramfs
-- [x] BusyBox shell
+- [x] BusyBox userspace
+- [x] Interactive shell
+- [x] VM static library
+- [x] Debugger frontend
+
+Possible future work:
+
 - [ ] More complete 16550 behavior
-- [ ] Additional hardware devices
-- [ ] Improved performance
-- [ ] Broader ISA extension support
 - [ ] Multi-hart support
-
-## Why This Project?
-
-A RISC-V emulator sits at the intersection of several areas of systems programming:
-
-- CPU architecture
-- Assembly
-- Operating systems
-- Virtual memory
-- Interrupts
-- Firmware
-- Device drivers
-- Binary formats
-- Hardware/software interfaces
-
-The goal of this project is to understand those systems by implementing them rather than treating them as black boxes.
+- [ ] Additional MMIO devices
+- [ ] Improved debugger functionality
+- [ ] Better performance
+- [ ] More ISA extensions
+- [ ] More complete atomic-memory semantics
+- [ ] Additional guest operating systems
 
 ## References
 
-Useful specifications and projects for understanding the system include:
+Useful references for the project include:
 
-- RISC-V Instruction Set Manual
+- RISC-V Unprivileged ISA Specification
 - RISC-V Privileged Architecture Specification
 - OpenSBI
-- Linux RISC-V port
 - Buildroot
 - BusyBox
 
 ## Author
 
-**Philip Gill**
+Philip Gill
 
-Built as a systems programming and computer architecture project focused on understanding the full path from CPU instruction execution to a bootable Linux userspace.
+Built as a systems programming and computer architecture project focused on understanding the full path from instruction execution to a bootable Linux userspace.
